@@ -246,7 +246,9 @@ def build_run_file(path, check=None):
 
     check 是可选断言片段（如 `assert next_power_of_2(5) == 8`），跑完后 exec 进文件的命名空间，
     用来验证「跑出来的值对不对」。注意：runpy 在进程内跑、不设超时（死循环会卡住 agent），
-    靠 _ALLOW_RUN_PYTHON 门控。
+    靠 _ALLOW_RUN_PYTHON 门控。被测代码调 sys.exit() 抛的是 SystemExit（BaseException，不在
+    Exception 下）——下面两处 except 用 (Exception, SystemExit) 接住，把「脚本主动退出」当运行失败
+    报给 agent，而不是让 SystemExit 穿出 kill 掉 agent 进程（P0-2）。
     """
     try:
         target = _resolve_write_path(path)
@@ -261,7 +263,7 @@ def build_run_file(path, check=None):
     try:
         with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
             ns = runpy.run_path(target, run_name="__main__")
-    except Exception as e:
+    except (Exception, SystemExit) as e:
         out = out_buf.getvalue()
         if err_buf.getvalue():
             out += "\n[stderr]\n" + err_buf.getvalue()
@@ -273,7 +275,7 @@ def build_run_file(path, check=None):
         try:
             exec(compile(check, "<check>", "exec"), ns)
             return ("check 通过\n" + (out.strip() or "（无输出）"))[:RUN_PYTHON_MAX_OUTPUT]
-        except Exception as e:
+        except (Exception, SystemExit) as e:
             return (f"[check 失败 {type(e).__name__}: {e}]\n" + (out.strip() or "（无输出）"))[:RUN_PYTHON_MAX_OUTPUT]
     return (out.strip() or "（无输出）")[:RUN_PYTHON_MAX_OUTPUT]
 

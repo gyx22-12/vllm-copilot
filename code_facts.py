@@ -13,6 +13,9 @@
 fact 结构：{"desc": "...", "checks": [ {kind, ...}, ... ]}
   - 一个 fact 有 1..n 个 check，全部通过才算过。
   - check 支持 "not": true 取反（如「不得出现 guided_json」「不得有 1<<n.bit_length() 的 bug 形」）。
+  - 纪律（P2-2）：纯取反 check 对「什么都没写」天然通过——空代码里没有 guided_json，也就「没违反」。
+    所以一个 fact 里不能只有 not check，必须至少一条正向 check（import/call/kwarg/func/...）共存，
+    正反放同一 fact、正反同时成立才算过；否则 agent 交白卷也能白捡这个 fact 的分。
   - value 认字面常量（str/int/bool/float），且会把「NAME = 常量」的模块/函数级名字解析回常量值
     （`max_num_batched_tokens=MAX_NUM` 且 `MAX_NUM = 16384` 也算命中）。局限：不折叠算术（2**14 不解析）。
 

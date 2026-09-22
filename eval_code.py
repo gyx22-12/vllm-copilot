@@ -3,7 +3,7 @@
 代码检索评测（search_code 的 Recall@k）：把「源码检索到没」变成数字。
 
 镜像 eval_qa.py 的 Recall@k / MRR / nDCG 三件套，但换语料、换 gold：
-  - 语料 = 代码索引（CodeIndex，vLLM v1 投机解码 48 个 .py / 337 个符号 chunk）
+  - 语料 = 代码索引（CodeIndex，vLLM v1 投机解码 48 个 .py / 523 个符号 chunk）
   - gold = 实现该答案的「符号名」（类/函数/方法），不再是文档关键词
   - 命中 = top-k 符号 chunk 拼接后含全部 gold 符号名（整标识符匹配，见 _has_symbol）
 

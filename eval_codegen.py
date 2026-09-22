@@ -31,6 +31,7 @@ facts 是 ground truth，写前 grep 文档核对的 API 面：
 import ast
 import os
 import re
+import shutil
 
 # 必须放在 import agent 之前：agent 在模块加载时读这两个开关。
 os.environ["VLLM_COPILOT_ALLOW_WRITE"] = "1"  # 暴露 read_file/write_file/edit_file（写代码被测的工具）
@@ -130,9 +131,11 @@ def main():
     agent.load_index(client)  # 同生产：doc 索引 + code 索引（让 search_code 工具可用）
 
     # 清空 workspace，避免上一轮落盘文件被当成本轮产物读出来。
+    # 用 rmtree 连子目录一起清：seed 可能落盘到 workspace/sub/ 下，os.remove 遇子目录会抛
+    # IsADirectoryError（P2-3）。
+    if os.path.isdir(_WRITE_ROOT):
+        shutil.rmtree(_WRITE_ROOT)
     os.makedirs(_WRITE_ROOT, exist_ok=True)
-    for f in os.listdir(_WRITE_ROOT):
-        os.remove(os.path.join(_WRITE_ROOT, f))
 
     rows = []
     for item in CODE_GEN_QUESTIONS:

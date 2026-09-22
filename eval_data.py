@@ -209,16 +209,16 @@ ANSWER_QUESTIONS = [
 ]
 
 # 代码检索评测题（eval_code.py）：gold = 实现该答案的「符号名」（类/函数/方法），不再是文档关键词。
-# 语料 = 代码索引（vLLM v1 投机解码 48 个 .py / 337 个符号 chunk，见 agent.CODE_DIRS）。
+# 语料 = 代码索引（vLLM v1 投机解码 48 个 .py / 523 个符号 chunk，见 agent.CODE_DIRS）。
 # 出题纪律（check_code_gold 的 harm 模型，同 check_gold）：
 #   - 可解：gold 符号必须在代码索引里（出现在 ≥1 chunk），否则题目无解。
 #   - 稀疏：gold 符号只能出现在极少数 chunk（类名会出现在「类概览 + 每个方法」chunk，是正常放大，
-#     仍远小于 337）；像 propose/load_model 这种几十个 chunk 都有的通用名禁用——测不出检索能力。
+#     仍远小于 523）；像 propose/load_model 这种几十个 chunk 都有的通用名禁用——测不出检索能力。
 #   - 不泄漏：query 不能含 gold 符号名字面，否则 BM25 字面命中，退化成「查名字」而非「查实现」。
 #   - 不同源（实验 18 收紧）：query 不能含「答案 chunk 里出现的同源词」——不只是符号名字面，还包括
 #     docstring/源码里的实现措辞（如 "prompt-lookup"、"hidden states"、"log-sum-exp"、"autoregressive"）。
 #     旧版 18 题几乎每道都用 docstring 的近义改写出题，R@1 其实在测「题面和合成描述字面重合」，不是
-#     「检索能理解代码」。去同源词后 R@1 掉到 0，只有 R@10（能不能捞回来）仍 0.75 是真本事。
+#     「检索能理解代码」。去同源词后 R@1 掉到 0，只有 R@10（能不能捞回来）剩 0.44 是真本事。
 #     所以下面的 q 一律用「高层角色描述」措辞，避开 gold 符号名与源码实现词。
 CODE_QA_SET = [
     {"id": "rejection-sampler", "q": "After the drafting model has already proposed a batch of candidate tokens, which class compares each proposed token's probability under the drafting model against its probability under the main model, and keeps or drops the token accordingly?", "gold": ["RejectionSampler"]},
