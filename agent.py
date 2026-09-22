@@ -25,6 +25,7 @@ import re
 import subprocess
 import sys
 import time
+import tempfile
 
 # 国内直连 huggingface 会超时，走镜像；必须在 import sentence_transformers 之前设置。
 if "HF_ENDPOINT" not in os.environ:
@@ -53,6 +54,7 @@ RERANK_MODEL = "BAAI/bge-reranker-base"
 LLM_MODEL = "deepseek-chat"
 RUN_PYTHON_TIMEOUT = 10       # run_python 子进程超时（秒）
 RUN_PYTHON_MAX_OUTPUT = 4000  # run_python 输出截断（字符）
+RUN_FILE_TIMEOUT = 30         # run_file 子进程超时（秒）：跑的是完整脚本，比 run_python 一段代码宽一些
 # run_python / run_file 是「LLM 生成的代码 → 本机子进程执行」的任意代码执行面，默认关闭。
 # 显式设 VLLM_COPILOT_ALLOW_RUN_PYTHON=1 才暴露这两个工具、并允许 route() 分派到 run_python。
 _ALLOW_RUN_PYTHON = os.environ.get("VLLM_COPILOT_ALLOW_RUN_PYTHON") == "1"
@@ -238,17 +240,85 @@ def build_edit_file(path, old_string, new_string):
         return f"（改文件失败：{e}）"
 
 
+# run_file 的子进程驱动：把「跑被测文件 + 跑 check 断言」整体搬进子进程，结果写临时结果文件。
+# 为什么必须子进程（P0-2，见落地顺序文档决策二）：被测代码与运行器共享同一进程时，被测代码
+# 既能用 sys.exit() 抛 SystemExit（BaseException，进程内 except Exception 接不住）杀掉运行器，
+# 也能用死循环 / os._exit() 挂住或绕过一切异常处理——能拦住这三样的只有进程边界。驱动内的
+# except BaseException 只是把 SystemExit 翻译成可读回报，真正承重的是 subprocess.run 的隔离。
+# 结果走临时文件、不走 stdout 哨兵：否则被测文件自己打印一行 __RESULT__ 就能污染解析。
+# 已知限制：subprocess.run 的超时只杀直接子进程，孙进程（multiprocessing）可能残留；runnable
+# 题是纯 Python，影响小（要严格就加 Windows 的 CREATE_NEW_PROCESS_GROUP）。
+_RUN_FILE_DRIVER = r'''
+import contextlib
+import io
+import json
+import runpy
+import sys
+
+target, check, result_file = sys.argv[1], sys.argv[2], sys.argv[3]
+out_buf, err_buf = io.StringIO(), io.StringIO()
+ns, run_ok, check_ok, err = {}, False, False, ""
+try:
+    with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
+        ns = runpy.run_path(target, run_name="__main__")  # 保持 __main__ 语义（与原 in-process 一致）
+    run_ok = True
+except BaseException as e:  # SystemExit 也在这里；进程边界内，杀掉的是子进程不是 agent
+    err = f"{type(e).__name__}: {e}"
+if run_ok and check:
+    try:
+        exec(compile(check, "<check>", "exec"), ns)
+        check_ok = True
+    except BaseException as e:
+        err = f"{type(e).__name__}: {e}"
+with open(result_file, "w", encoding="utf-8") as f:
+    json.dump({"run_ok": run_ok, "check_ok": check_ok, "err": err,
+               "stdout": out_buf.getvalue(), "stderr": err_buf.getvalue()},
+              f, ensure_ascii=False)
+'''
+
+
+def _run_subprocess(target, check, timeout):
+    """在子进程里跑一个 .py 文件（runpy）+ 可选 check 断言，返回 (res, timed_out)。
+
+    res = {"run_ok", "check_ok", "err", "stdout", "stderr"}，由 _RUN_FILE_DRIVER 写进临时结果文件；
+    驱动没写出结果文件（os._exit / 段错误 / 驱动自身崩）时返回合成的 res（run_ok=False）。
+    timed_out 表示超时。build_run_file 与 eval_codegen.run_python_check 共用这条路径（消掉两套执行实现）。
+    """
+    fd, result_file = tempfile.mkstemp(suffix=".json", prefix="runfile_")
+    os.close(fd)
+    try:
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-c", _RUN_FILE_DRIVER, target, check or "", result_file],
+                capture_output=True, text=True, timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return None, True
+        try:
+            with open(result_file, encoding="utf-8") as f:
+                return json.load(f), False
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {
+                "run_ok": False, "check_ok": False,
+                "err": f"进程被硬退出（码 {proc.returncode}）",
+                "stdout": proc.stdout or "", "stderr": proc.stderr or "",
+            }, False
+    finally:
+        try:
+            os.remove(result_file)
+        except OSError:
+            pass
+
+
 def build_run_file(path, check=None):
-    """运行 workspace/ 下已写好的 .py 文件（runpy 进程内执行），返回 stdout/stderr 或 check 结果。
+    """运行 workspace/ 下已写好的 .py 文件（子进程 runpy 执行），返回 stdout/stderr 或 check 结果。
 
     「写代码 → 真执行」闭环：agent 用 write_file 落盘后，用它把文件真跑一遍——看到报错就修，
     这是 fix-rate（多轮自纠）的来源；run_python 只能跑 LLM 直接给的字符串，跑不了已落盘的文件。
 
     check 是可选断言片段（如 `assert next_power_of_2(5) == 8`），跑完后 exec 进文件的命名空间，
-    用来验证「跑出来的值对不对」。注意：runpy 在进程内跑、不设超时（死循环会卡住 agent），
-    靠 _ALLOW_RUN_PYTHON 门控。被测代码调 sys.exit() 抛的是 SystemExit（BaseException，不在
-    Exception 下）——下面两处 except 用 (Exception, SystemExit) 接住，把「脚本主动退出」当运行失败
-    报给 agent，而不是让 SystemExit 穿出 kill 掉 agent 进程（P0-2）。
+    用来验证「跑出来的值对不对」。整个「跑 + check」搬进子进程（P0-2）：被测代码 sys.exit()、
+    死循环、os._exit() 都被子进程边界隔住，杀不掉 agent 进程（见 _run_subprocess）。
     """
     try:
         target = _resolve_write_path(path)
@@ -256,27 +326,20 @@ def build_run_file(path, check=None):
         return f"（路径非法：{e}）"
     if not os.path.exists(target):
         return f"（文件不存在：{path}）"
-    import io
-    import runpy
-    import contextlib
-    out_buf, err_buf = io.StringIO(), io.StringIO()
-    try:
-        with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
-            ns = runpy.run_path(target, run_name="__main__")
-    except (Exception, SystemExit) as e:
-        out = out_buf.getvalue()
-        if err_buf.getvalue():
-            out += "\n[stderr]\n" + err_buf.getvalue()
-        return (f"[运行失败 {type(e).__name__}: {e}]\n" + out.strip())[:RUN_PYTHON_MAX_OUTPUT]
-    out = out_buf.getvalue()
-    if err_buf.getvalue():
-        out += "\n[stderr]\n" + err_buf.getvalue()
+
+    res, timed_out = _run_subprocess(target, check, RUN_FILE_TIMEOUT)
+    if timed_out:
+        return f"（执行超时，超过 {RUN_FILE_TIMEOUT}s 已终止）"
+
+    out = res["stdout"]
+    if res["stderr"]:
+        out += "\n[stderr]\n" + res["stderr"]
+    if not res["run_ok"]:
+        return (f"[运行失败 {res['err']}]\n" + out.strip())[:RUN_PYTHON_MAX_OUTPUT]
     if check:
-        try:
-            exec(compile(check, "<check>", "exec"), ns)
+        if res["check_ok"]:
             return ("check 通过\n" + (out.strip() or "（无输出）"))[:RUN_PYTHON_MAX_OUTPUT]
-        except (Exception, SystemExit) as e:
-            return (f"[check 失败 {type(e).__name__}: {e}]\n" + (out.strip() or "（无输出）"))[:RUN_PYTHON_MAX_OUTPUT]
+        return (f"[check 失败 {res['err']}]\n" + (out.strip() or "（无输出）"))[:RUN_PYTHON_MAX_OUTPUT]
     return (out.strip() or "（无输出）")[:RUN_PYTHON_MAX_OUTPUT]
 
 
@@ -369,7 +432,7 @@ RUN_FILE_TOOL = {
     "function": {
         "name": "run_file",
         "description": (
-            "运行 workspace/ 目录下已写好的 .py 文件（进程内 runpy 执行），返回 stdout/stderr。"
+            "运行 workspace/ 目录下已写好的 .py 文件（子进程 runpy 执行、限时 30s），返回 stdout/stderr。"
             "写完代码用 write_file 落盘后，再 run_file 真跑一遍看报错、据此修复（可带 check 断言验证结果）。"
             "path 是相对 workspace/ 的相对路径；check 是可选断言片段，跑完 exec 进文件命名空间。"
         ),

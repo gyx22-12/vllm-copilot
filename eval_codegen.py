@@ -32,6 +32,7 @@ import ast
 import os
 import re
 import shutil
+import tempfile
 
 # 必须放在 import agent 之前：agent 在模块加载时读这两个开关。
 os.environ["VLLM_COPILOT_ALLOW_WRITE"] = "1"  # 暴露 read_file/write_file/edit_file（写代码被测的工具）
@@ -68,18 +69,29 @@ def syntax_ok(code):
 
 
 def run_python_check(code, check, path):
-    """纯 Python 题真执行：把代码 exec 进干净命名空间，再跑断言片段。
+    """纯 Python 题真执行：把代码写进临时文件，走与 run_file 同一个子进程 helper 跑 + 断言。
 
-    只对 runnable=True 的纯函数题用（不 import vllm、无副作用），和 agent.run_python 的
-    目的同源（验证写出的代码真能跑通）。失败返回 (False, 错误信息)。
+    只对 runnable=True 的纯函数题用（不 import vllm、无副作用）。与 agent.build_run_file
+    共用同一套子进程执行路径（P0-2：不留第二份 in-process exec，消掉判分与工具的两套实现），
+    被测代码 sys.exit()/死循环只会杀子进程、杀不掉评测本身。返回 (check_ok, err, timed_out)。
     """
+    fd, tmp = tempfile.mkstemp(suffix=".py", prefix="codegen_")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(code)
     try:
-        ns = {}
-        exec(compile(code, path, "exec"), ns)
-        exec(check, ns)
-        return True, ""
-    except Exception as e:
-        return False, f"{type(e).__name__}: {e}"
+        res, timed_out = agent._run_subprocess(tmp, check, agent.RUN_FILE_TIMEOUT)
+    finally:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+    if timed_out:
+        return False, "执行超时", True
+    if not res["run_ok"]:
+        return False, res["err"], False
+    if not res["check_ok"]:
+        return False, res["err"], False
+    return True, "", False
 
 
 def eval_one(item, client, fix_prompt=None):
@@ -106,12 +118,12 @@ def eval_one(item, client, fix_prompt=None):
     facts = check_facts(code, item["facts"])
     n_hit = sum(1 for _, ok in facts if ok)
     n_fact = len(facts)
-    run, run_err = (None, None)
+    run, run_err, run_timed_out = (None, None, None)
     if item.get("runnable"):
-        run, run_err = run_python_check(code, item["run_check"], path)
+        run, run_err, run_timed_out = run_python_check(code, item["run_check"], path)
     return {"id": item["id"], "ast": syn, "n_hit": n_hit, "n_fact": n_fact,
             "run": run, "facts": facts, "run_err": run_err, "syn_err": syn_err,
-            "code": code}
+            "code": code, "timed_out": run_timed_out}
 
 
 def _print_round(r):
@@ -121,7 +133,10 @@ def _print_round(r):
     for desc, ok in r["facts"]:
         print(f"    {'✓' if ok else '✗'} {desc}")
     if r["run"] is not None:
-        print(f"  run   {'✓ 通过' if r['run'] else '✗ ' + (r['run_err'] or '')}")
+        if r.get("timed_out"):
+            print("  run   ⏱ 执行超时")
+        else:
+            print(f"  run   {'✓ 通过' if r['run'] else '✗ ' + (r['run_err'] or '')}")
     first = next((ln for ln in r["code"].splitlines() if ln.strip()), "<空>")
     print(f"  产物首行: {first[:90]}")
 
@@ -146,7 +161,9 @@ def main():
 
     # ---- fix-rate 轮：runnable 题第一轮 run 没过 → 喂回失败，让 agent 用 run_file 自测并修复 ----
     # 只对「真执行」题做：静态 facts 没过没有可喂回的运行时错误，run_file 也帮不上。
-    fixable = [r for r in rows if r["run"] is False]
+    # 执行超时（写死循环）是另一种 agent 缺陷，不进「喂回失败→run_file 自纠」的修复轮
+    # （它的提示模板假设是断言失败，且重跑只会再挂一次），只在汇总里单列。
+    fixable = [r for r in rows if r["run"] is False and not r.get("timed_out")]
     for r in fixable:
         item = next(it for it in CODE_GEN_QUESTIONS if it["id"] == r["id"])
         print(f"\n===== {r['id']} 修复轮 =====")
@@ -171,6 +188,7 @@ def main():
     n_fact_total = sum(r["n_fact"] for r in rows)
     runnable = [r for r in rows if r["run"] is not None]
     n_pass1 = sum(1 for r in runnable if r["run"] is True)
+    n_timed_out = sum(1 for r in runnable if r.get("timed_out"))
     n_fixed = sum(1 for r in fixable if r.get("fix_run") is True)
 
     print("\n===== 代码生成正确性汇总 =====")
@@ -178,6 +196,8 @@ def main():
     print(f"  fact 命中            : {n_fact_hit}/{n_fact_total}  ({n_fact_hit/n_fact_total:.2f})")
     if runnable:
         print(f"  pass@1（首轮 run 过）: {n_pass1}/{len(runnable)}  ({n_pass1/len(runnable):.2f})")
+    if n_timed_out:
+        print(f"  执行超时（写死循环）: {n_timed_out}/{len(runnable)}  ← 与逻辑写错分开计")
     if fixable:
         print(f"  fix-rate（失败→修复轮过）: {n_fixed}/{len(fixable)}  ({n_fixed/len(fixable):.2f})")
 
