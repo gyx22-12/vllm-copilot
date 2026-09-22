@@ -1,0 +1,17 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ---- 上游 vllm 源码树（corpus/src/vllm-0.29.0.tar.gz 可再解压，不入库）----
+corpus/
+
+# ---- agent 运行时工作区（run_file / write_file 产物，可随时重建）----
+workspace/
+
+# ---- 日志 / 临时 ----
+*.log
+*.tmp
