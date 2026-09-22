@@ -85,12 +85,14 @@ def check_code_gold(qa_set, chunks):
 
 
 def check_query_discriminability(qa_set, embedder, threshold=0.80):
-    """题面可区分性检查：任意两题题面 embedding 余弦相似度超阈值就报警。
+    """题面可区分性检查：算任意两题题面 embedding 余弦相似度，按相似度降序返回所有对。
 
     去同源去过头时（实验 18），两题的题面比答案还像——ngram「向后扫文本找可复用片段」和
     suffix「复用之前见过的序列」在向量空间里几乎重合，检索器再强也会把答案互相错位。
     这是出题问题不是检索问题，所以和 check_code_gold 一样在评测前当 harm 模型跑，把
-    「题面撞车」抓出来逼你去补互相排斥的区分特征。返回 [(id_a, id_b, cos), ...] 按相似度降序。
+    「题面撞车」抓出来逼你去补互相排斥的区分特征。返回 [(id_a, id_b, cos), ...] 按相似度降序；
+    全量返回（不过滤 threshold）是给 P2-4 用——调用方要能看阈值以下的最近几对、知道离阈值
+    还有多少余量，而不是只知道「超没超」。
     """
     from rag_baseline import QUERY_INSTRUCTION
     qs = [QUERY_INSTRUCTION + qa["q"] for qa in qa_set]
@@ -100,8 +102,7 @@ def check_query_discriminability(qa_set, embedder, threshold=0.80):
     pairs = []
     for i in range(len(qa_set)):
         for j in range(i + 1, len(qa_set)):
-            if sim[i, j] >= threshold:
-                pairs.append((qa_set[i]["id"], qa_set[j]["id"], float(sim[i, j])))
+            pairs.append((qa_set[i]["id"], qa_set[j]["id"], float(sim[i, j])))
     return sorted(pairs, key=lambda p: -p[2])
 
 
@@ -193,13 +194,19 @@ def main():
         print(f"    n_files={r['n_files']:>2}  {r['q'][:40]}  [{detail}]{flag}")
 
     # 题面可区分性体检（实验 19）：两题题面太像 → 答案会互相错位，是出题问题不是检索问题。
-    close_pairs = check_query_discriminability(CODE_QA_SET, idx._embed)
-    if close_pairs:
+    pairs = check_query_discriminability(CODE_QA_SET, idx._embed)
+    close = [p for p in pairs if p[2] >= 0.80]
+    if close:
         print("\n⚠ 题面撞车（两题题面相似度 ≥ 阈值，检索会把答案互相错排，先改题面再跑）：")
-        for a, b, s in close_pairs:
+        for a, b, s in close:
             print(f"    {a:>16}  ↔  {b:<16}  cos={s:.3f}")
     else:
         print("✓ 题面可区分性通过：没有两题题面相似度超阈值")
+    if pairs:  # P2-4：顺便看阈值以下的最近几对，知道离阈值还有多少余量
+        print("  最近 3 对题面相似度（看离阈值 0.80 的余量）：")
+        for a, b, s in pairs[:3]:
+            mark = "  ⚠≥阈值" if s >= 0.80 else ""
+            print(f"    {a:>16}  ↔  {b:<16}  cos={s:.3f}{mark}")
 
     # 每题跑生产检索，取 top-10 排名（一次检索，@1/@3/@5/@10 从同一排名切）。
     ranked_all = [idx.search(qa["q"], top_k=10) for qa in CODE_QA_SET]
