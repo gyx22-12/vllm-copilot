@@ -1,0 +1,507 @@
+{
+  "meta": {
+    "n_files": 48,
+    "n_chunks": 523,
+    "n_pairs": 17,
+    "a_ids": [
+      "medusa",
+      "multi-mtp",
+      "eagle-spec",
+      "hidden-states-extract",
+      "rejection-sampler",
+      "suffix-decode",
+      "adaptive-verify",
+      "mtp"
+    ],
+    "b_ids": [
+      "vocab-mapping",
+      "ngram-lookup",
+      "ngram-gpu-update",
+      "sd-metadata",
+      "logsumexp",
+      "autoregressive",
+      "dflash",
+      "speculator-factory",
+      "gemma4"
+    ],
+    "trunc": 21,
+    "main_strategy": "S1 RRF(1,1) n20",
+    "main_k": 10,
+    "declarations": [
+      "① Δ 读「词根/符号线索值多少分」，不读「真实用户 vs 抽象」——两臂题面都看着 gold 写出来",
+      "② 主指标 R@10 预指定（基线 0.44 可动空间大、不一致对多、功效最高）",
+      "③ 截断常数 = 21（RECALL_N+1），未进召回 rank=21、rr=0"
+    ],
+    "annotations": [
+      "档② dflash 题面「merges the main model's work into the same pass」是错误概括（DFlash 跑自己的 draft model 并行草案，不并入 target forward pass）；档②已冻结不改，仅标注",
+      "rejection-sampler 的 RejectionSampler 在 vLLM 有两处定义，但 v1/sample/ 不在 CODE_DIRS，索引里只有后者 → 命中判定无歧义；源码层命名过载，仅标注"
+    ]
+  },
+  "ablation": {
+    "S1 RRF(1,1) n20": {
+      "depth": 20,
+      "nat": {
+        "1": 0.7058823529411765,
+        "3": 0.7647058823529411,
+        "5": 0.8235294117647058,
+        "10": 0.9411764705882353,
+        "MRR": 0.7526143790849673,
+        "cov": 0.9411764705882353
+      },
+      "abs": {
+        "1": 0.17647058823529413,
+        "3": 0.23529411764705882,
+        "5": 0.29411764705882354,
+        "10": 0.4117647058823529,
+        "MRR": 0.24472096530920062,
+        "cov": 0.5294117647058824
+      }
+    },
+    "S2 纯向量 n20": {
+      "depth": 20,
+      "nat": {
+        "1": 0.6470588235294118,
+        "3": 0.7058823529411765,
+        "5": 0.8235294117647058,
+        "10": 0.8235294117647058,
+        "MRR": 0.7104072398190046,
+        "cov": 0.8823529411764706
+      },
+      "abs": {
+        "1": 0.11764705882352941,
+        "3": 0.29411764705882354,
+        "5": 0.29411764705882354,
+        "10": 0.5294117647058824,
+        "MRR": 0.24006151480199922,
+        "cov": 0.7058823529411765
+      }
+    },
+    "S3 加权RRF .85/.15 n20": {
+      "depth": 20,
+      "nat": {
+        "1": 0.6470588235294118,
+        "3": 0.7058823529411765,
+        "5": 0.8235294117647058,
+        "10": 0.8235294117647058,
+        "MRR": 0.7071428571428572,
+        "cov": 0.8823529411764706
+      },
+      "abs": {
+        "1": 0.11764705882352941,
+        "3": 0.23529411764705882,
+        "5": 0.35294117647058826,
+        "10": 0.5294117647058824,
+        "MRR": 0.23784396111385733,
+        "cov": 0.6470588235294118
+      }
+    },
+    "S4 RRF(1,1) n40": {
+      "depth": 40,
+      "nat": {
+        "1": 0.7058823529411765,
+        "3": 0.7647058823529411,
+        "5": 0.8235294117647058,
+        "10": 0.9411764705882353,
+        "MRR": 0.7639433551198257,
+        "cov": 1.0
+      },
+      "abs": {
+        "1": 0.11764705882352941,
+        "3": 0.23529411764705882,
+        "5": 0.23529411764705882,
+        "10": 0.4117647058823529,
+        "MRR": 0.21813893345035212,
+        "cov": 0.7058823529411765
+      }
+    },
+    "S5 min-rank n20": {
+      "depth": 20,
+      "nat": {
+        "1": 0.7058823529411765,
+        "3": 0.7647058823529411,
+        "5": 0.8235294117647058,
+        "10": 0.8823529411764706,
+        "MRR": 0.7558823529411764,
+        "cov": 0.8823529411764706
+      },
+      "abs": {
+        "1": 0.23529411764705882,
+        "3": 0.23529411764705882,
+        "5": 0.29411764705882354,
+        "10": 0.47058823529411764,
+        "MRR": 0.2855732442146574,
+        "cov": 0.6470588235294118
+      }
+    },
+    "S6 纯向量 n40": {
+      "depth": 40,
+      "nat": {
+        "1": 0.6470588235294118,
+        "3": 0.7058823529411765,
+        "5": 0.7647058823529411,
+        "10": 0.8823529411764706,
+        "MRR": 0.7076711386308909,
+        "cov": 0.9411764705882353
+      },
+      "abs": {
+        "1": 0.11764705882352941,
+        "3": 0.23529411764705882,
+        "5": 0.35294117647058826,
+        "10": 0.4117647058823529,
+        "MRR": 0.21984492760421553,
+        "cov": 0.7647058823529411
+      }
+    }
+  },
+  "L1": {
+    "A组_k1": {
+      "n": 8,
+      "nat": 1.0,
+      "abs": 0.25,
+      "b": 6,
+      "c": 0,
+      "delta": 0.75,
+      "ci": [
+        0.375,
+        1.0
+      ],
+      "mcnemar_p": 0.03125
+    },
+    "A组_k3": {
+      "n": 8,
+      "nat": 1.0,
+      "abs": 0.25,
+      "b": 6,
+      "c": 0,
+      "delta": 0.75,
+      "ci": [
+        0.375,
+        1.0
+      ],
+      "mcnemar_p": 0.03125
+    },
+    "A组_k5": {
+      "n": 8,
+      "nat": 1.0,
+      "abs": 0.25,
+      "b": 6,
+      "c": 0,
+      "delta": 0.75,
+      "ci": [
+        0.375,
+        1.0
+      ],
+      "mcnemar_p": 0.03125
+    },
+    "A组_k10": {
+      "n": 8,
+      "nat": 1.0,
+      "abs": 0.375,
+      "b": 5,
+      "c": 0,
+      "delta": 0.625,
+      "ci": [
+        0.25,
+        0.875
+      ],
+      "mcnemar_p": 0.0625
+    },
+    "B组_k1": {
+      "n": 9,
+      "nat": 0.4444444444444444,
+      "abs": 0.1111111111111111,
+      "b": 3,
+      "c": 0,
+      "delta": 0.3333333333333333,
+      "ci": [
+        0.0,
+        0.6666666666666666
+      ],
+      "mcnemar_p": 0.25
+    },
+    "B组_k3": {
+      "n": 9,
+      "nat": 0.5555555555555556,
+      "abs": 0.2222222222222222,
+      "b": 4,
+      "c": 1,
+      "delta": 0.3333333333333333,
+      "ci": [
+        -0.1111111111111111,
+        0.7777777777777778
+      ],
+      "mcnemar_p": 0.375
+    },
+    "B组_k5": {
+      "n": 9,
+      "nat": 0.6666666666666666,
+      "abs": 0.3333333333333333,
+      "b": 4,
+      "c": 1,
+      "delta": 0.3333333333333333,
+      "ci": [
+        -0.1111111111111111,
+        0.7777777777777778
+      ],
+      "mcnemar_p": 0.375
+    },
+    "B组_k10": {
+      "n": 9,
+      "nat": 0.8888888888888888,
+      "abs": 0.4444444444444444,
+      "b": 4,
+      "c": 0,
+      "delta": 0.4444444444444444,
+      "ci": [
+        0.1111111111111111,
+        0.7777777777777778
+      ],
+      "mcnemar_p": 0.125
+    },
+    "合计_k1": {
+      "n": 17,
+      "nat": 0.7058823529411765,
+      "abs": 0.17647058823529413,
+      "b": 9,
+      "c": 0,
+      "delta": 0.5294117647058824,
+      "ci": [
+        0.29411764705882354,
+        0.7647058823529411
+      ],
+      "mcnemar_p": 0.00390625
+    },
+    "合计_k3": {
+      "n": 17,
+      "nat": 0.7647058823529411,
+      "abs": 0.23529411764705882,
+      "b": 10,
+      "c": 1,
+      "delta": 0.5294117647058824,
+      "ci": [
+        0.23529411764705882,
+        0.8235294117647058
+      ],
+      "mcnemar_p": 0.01171875
+    },
+    "合计_k5": {
+      "n": 17,
+      "nat": 0.8235294117647058,
+      "abs": 0.29411764705882354,
+      "b": 10,
+      "c": 1,
+      "delta": 0.5294117647058824,
+      "ci": [
+        0.23529411764705882,
+        0.8235294117647058
+      ],
+      "mcnemar_p": 0.01171875
+    },
+    "合计_k10": {
+      "n": 17,
+      "nat": 0.9411764705882353,
+      "abs": 0.4117647058823529,
+      "b": 9,
+      "c": 0,
+      "delta": 0.5294117647058824,
+      "ci": [
+        0.29411764705882354,
+        0.7647058823529411
+      ],
+      "mcnemar_p": 0.00390625
+    }
+  },
+  "L2": {
+    "A组": {
+      "n": 8,
+      "mrr_nat": 1.0,
+      "mrr_abs": 0.2777777777777778,
+      "dmrr": 0.7222222222222223,
+      "ci": [
+        0.375,
+        0.9791666666666667
+      ],
+      "wilcoxon_p": 0.03125,
+      "rank_diff_median": -18.5
+    },
+    "B组": {
+      "n": 9,
+      "mrr_nat": 0.532716049382716,
+      "mrr_abs": 0.21533713200379867,
+      "dmrr": 0.3173789173789174,
+      "ci": [
+        0.0285493827160494,
+        0.6222222222222222
+      ],
+      "wilcoxon_p": 0.109375,
+      "rank_diff_median": -7.5
+    },
+    "合计": {
+      "n": 17,
+      "mrr_nat": 0.7526143790849673,
+      "mrr_abs": 0.24472096530920062,
+      "dmrr": 0.5078934137757668,
+      "ci": [
+        0.27394733534439414,
+        0.7356711915535445
+      ],
+      "wilcoxon_p": 0.0033706238791354013,
+      "rank_diff_median": -10.5
+    }
+  },
+  "per_question": [
+    {
+      "id": "medusa",
+      "group": "A",
+      "nat_rank": 1,
+      "abs_rank": 21,
+      "nat_hit10": true,
+      "abs_hit10": false,
+      "gold": "MedusaProposer"
+    },
+    {
+      "id": "multi-mtp",
+      "group": "A",
+      "nat_rank": 1,
+      "abs_rank": 21,
+      "nat_hit10": true,
+      "abs_hit10": false,
+      "gold": "prepare_input_hidden_states_and_embeddings"
+    },
+    {
+      "id": "eagle-spec",
+      "group": "A",
+      "nat_rank": 1,
+      "abs_rank": 21,
+      "nat_hit10": true,
+      "abs_hit10": false,
+      "gold": "EagleSpeculator"
+    },
+    {
+      "id": "hidden-states-extract",
+      "group": "A",
+      "nat_rank": 1,
+      "abs_rank": 18,
+      "nat_hit10": true,
+      "abs_hit10": false,
+      "gold": "ExtractHiddenStatesProposer"
+    },
+    {
+      "id": "rejection-sampler",
+      "group": "A",
+      "nat_rank": 1,
+      "abs_rank": 21,
+      "nat_hit10": true,
+      "abs_hit10": false,
+      "gold": "RejectionSampler"
+    },
+    {
+      "id": "suffix-decode",
+      "group": "A",
+      "nat_rank": 1,
+      "abs_rank": 1,
+      "nat_hit10": true,
+      "abs_hit10": true,
+      "gold": "SuffixDecodingProposer"
+    },
+    {
+      "id": "adaptive-verify",
+      "group": "A",
+      "nat_rank": 1,
+      "abs_rank": 6,
+      "nat_hit10": true,
+      "abs_hit10": true,
+      "gold": "AdaptiveVerificationManager"
+    },
+    {
+      "id": "mtp",
+      "group": "A",
+      "nat_rank": 1,
+      "abs_rank": 1,
+      "nat_hit10": true,
+      "abs_hit10": true,
+      "gold": "MTPSpeculator"
+    },
+    {
+      "id": "vocab-mapping",
+      "group": "B",
+      "nat_rank": 3,
+      "abs_rank": 9,
+      "nat_hit10": true,
+      "abs_hit10": true,
+      "gold": "VocabMapping"
+    },
+    {
+      "id": "ngram-lookup",
+      "group": "B",
+      "nat_rank": 1,
+      "abs_rank": 1,
+      "nat_hit10": true,
+      "abs_hit10": true,
+      "gold": "_find_longest_matched_ngram_and_propose_tokens"
+    },
+    {
+      "id": "ngram-gpu-update",
+      "group": "B",
+      "nat_rank": 1,
+      "abs_rank": 21,
+      "nat_hit10": true,
+      "abs_hit10": false,
+      "gold": "update_ngram_gpu_tensors_incremental"
+    },
+    {
+      "id": "sd-metadata",
+      "group": "B",
+      "nat_rank": 21,
+      "abs_rank": 21,
+      "nat_hit10": false,
+      "abs_hit10": false,
+      "gold": "SpecDecodeMetadata"
+    },
+    {
+      "id": "logsumexp",
+      "group": "B",
+      "nat_rank": 1,
+      "abs_rank": 21,
+      "nat_hit10": true,
+      "abs_hit10": false,
+      "gold": "_compute_global_logsumexp"
+    },
+    {
+      "id": "autoregressive",
+      "group": "B",
+      "nat_rank": 10,
+      "abs_rank": 2,
+      "nat_hit10": true,
+      "abs_hit10": true,
+      "gold": "AutoRegressiveSpeculator"
+    },
+    {
+      "id": "dflash",
+      "group": "B",
+      "nat_rank": 4,
+      "abs_rank": 13,
+      "nat_hit10": true,
+      "abs_hit10": false,
+      "gold": "DFlashSpeculator"
+    },
+    {
+      "id": "speculator-factory",
+      "group": "B",
+      "nat_rank": 9,
+      "abs_rank": 21,
+      "nat_hit10": true,
+      "abs_hit10": false,
+      "gold": "init_speculator"
+    },
+    {
+      "id": "gemma4",
+      "group": "B",
+      "nat_rank": 1,
+      "abs_rank": 4,
+      "nat_hit10": true,
+      "abs_hit10": true,
+      "gold": "Gemma4Proposer"
+    }
+  ]
+}

@@ -241,6 +241,44 @@ CODE_QA_SET = [
     {"id": "dspark", "q": "How does one candidate-generation path draw its suggestions one at a time for each request from the main model's internal state?", "gold": ["DSparkSpeculator"]},
 ]
 
+# 档① 自然提问（配对差值的「自然」一臂）：与 CODE_QA_SET（档②抽象）按 id 对齐、同 gold。
+# 两臂同 id 逐题配对，delta = 题面口径净效应（术语+措辞风格）。17 题：A 组 8 道从 orig 复原
+# （措辞归一：target model 统一、main model 消除），B 组 9 道新写。
+# 冻结记录（2026-09-22 review 后）：
+#   - dflash 原题「merges the draft model's computation into the target model's forward pass」已删：
+#     DFlash 是 DraftModelSpeculator，跑自己的 draft model 做并行草案（1+N layout、一次 forward
+#     pass 出全部候选），并不并入 target 的 forward pass。已改为「separate draft model + single
+#     forward pass」。注：档② dflash 题面「merges the main model's work into the same pass」同是
+#     这个错误概括，但档②已冻结不改，只在报表口径声明里标注。
+#   - dspark 暂摘：原题「loads a draft model and samples each request's candidate tokens one at a
+#     time」描述的是 AutoRegressiveSpeculator（逐 token 推进），不是 DSparkSpeculator（DFlash 子类，
+#     semi-autoregressive 并行块草案）。待 ②a 定案后单独重写；现在它既答不对又占配对名额、只添噪声。
+#   - rejection-sampler 的 RejectionSampler 在 vLLM 源码有两处定义（v1/sample/ 与 v1/worker/gpu/
+#     spec_decode/），但 v1/sample/ 不在 CODE_DIRS，索引里只有后者 → 命中判定无歧义。这是源码层
+#     命名过载，报表口径声明里标注，不重写题面。
+# 方法学提醒（报表三行出）：两组题面都看着 gold 写出来，delta 只能读成「词根/符号线索值多少分」，
+# 不是「真实用户 vs 抽象」。ngram-lookup/logsumexp/ngram-gpu-update 三道近乎「标识符去下划线」，
+# 与其余题不同分布 → L1/L2 按 A 组(8)/B 组(9)/合计(17) 三行报，不合成一个数。
+NATURAL_QA = {
+    "medusa": "Which proposer implements MEDUSA-style drafting by stacking several classification heads on top of the target model's hidden states?",
+    "multi-mtp": "For the multi-module multi-token-prediction path, how does vLLM prepare each draft module's input hidden states and embeddings before running them together?",
+    "eagle-spec": "Which speculator subclass specializes the autoregressive drafting path for EAGLE-style draft models?",
+    "hidden-states-extract": "Which proposer extracts hidden states from the target model so they can be fed to a draft model for EAGLE-style speculative decoding?",
+    "rejection-sampler": "Which class verifies draft tokens against the target model's token probabilities and accepts or rejects each one?",
+    "suffix-decode": "How does the suffix-matching proposal method look up the current token suffix against previously seen sequences to propose a continuation?",
+    "adaptive-verify": "How does vLLM adaptively decide how many draft tokens to verify per request, based on measured per-step cost curves?",
+    "mtp": "How does the multi-token-prediction path reuse the target model's prefill step to seed the draft model's decode?",
+    "vocab-mapping": "When the draft model and the target model use different tokenizers, which component translates token IDs from one vocabulary to the other?",
+    "ngram-lookup": "In the n-gram drafting method, how does vLLM find the longest run of tokens in the context that matches the current suffix, and turn the tokens that follow it into draft candidates?",
+    "ngram-gpu-update": "When running n-gram drafting on GPU, how does vLLM keep its on-device token-id and token-count tables updated incrementally as accepted tokens extend the sequence?",
+    "sd-metadata": "Which data structure holds the per-request bookkeeping for one speculative decoding step, such as the list of candidate tokens and how many were accepted?",
+    "logsumexp": "The rejection-sampling step needs a log-sum-exp of the target model's probabilities over the whole vocabulary; how does vLLM combine the per-block results into that global value?",
+    "autoregressive": "Which drafting component runs a standalone draft model token-by-token in a loop, handling its loading, attention setup, and CUDA graph capture to propose candidates?",
+    "dflash": "Which drafting path proposes all of its speculative tokens in a single forward pass of a separate draft model, in the DFlash parallel-drafting technique?",
+    "speculator-factory": "Given the speculative decoding settings in the config, which entry point selects and constructs the right proposer for the requested method?",
+    "gemma4": "For the Gemma family, how does the speculative decoding path set up the multi-group KV cache and the centroid masking its lightweight prediction heads rely on?",
+}
+
 # 代码生成评测题（eval_codegen.py）：task 是「写代码」的指令，facts 是静态「代码事实」。
 # 和答案正确性（answer_eval）的分工：那里 facts 判「说没说对」，这里 facts 判「代码里有没有用对 API」。
 # facts 是 ground truth，写前 grep 文档核对 API 名/参数值（同 answer_eval 纪律）——API 记错 = 参考答案错。
