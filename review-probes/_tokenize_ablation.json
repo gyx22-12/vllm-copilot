@@ -1,0 +1,194 @@
+{
+ "baseline": {
+  "summary": {
+   "orig": {
+    "MRR": 0.75,
+    "R@1": 0.625,
+    "R@10": 0.875
+   },
+   "para": {
+    "MRR": 0.268,
+    "R@1": 0.0,
+    "R@10": 0.75
+   }
+  },
+  "rows": [
+   {
+    "id": "medusa",
+    "gold": "MedusaProposer",
+    "orig_rank": 2,
+    "para_rank": 2
+   },
+   {
+    "id": "multi-mtp",
+    "gold": "prepare_input_hidden_states_and_embeddings",
+    "orig_rank": 1,
+    "para_rank": 2
+   },
+   {
+    "id": "eagle-spec",
+    "gold": "EagleSpeculator",
+    "orig_rank": 1,
+    "para_rank": null
+   },
+   {
+    "id": "hidden-states-extract",
+    "gold": "ExtractHiddenStatesProposer",
+    "orig_rank": 1,
+    "para_rank": 9
+   },
+   {
+    "id": "rejection-sampler",
+    "gold": "RejectionSampler",
+    "orig_rank": null,
+    "para_rank": null
+   },
+   {
+    "id": "suffix-decode",
+    "gold": "SuffixDecodingProposer",
+    "orig_rank": 2,
+    "para_rank": 3
+   },
+   {
+    "id": "adaptive-verify",
+    "gold": "AdaptiveVerificationManager",
+    "orig_rank": 1,
+    "para_rank": 5
+   },
+   {
+    "id": "mtp",
+    "gold": "MTPSpeculator",
+    "orig_rank": 1,
+    "para_rank": 2
+   }
+  ]
+ },
+ "lower": {
+  "summary": {
+   "orig": {
+    "MRR": 0.875,
+    "R@1": 0.75,
+    "R@10": 1.0
+   },
+   "para": {
+    "MRR": 0.254,
+    "R@1": 0.0,
+    "R@10": 0.625
+   }
+  },
+  "rows": [
+   {
+    "id": "medusa",
+    "gold": "MedusaProposer",
+    "orig_rank": 2,
+    "para_rank": 2
+   },
+   {
+    "id": "multi-mtp",
+    "gold": "prepare_input_hidden_states_and_embeddings",
+    "orig_rank": 1,
+    "para_rank": 2
+   },
+   {
+    "id": "eagle-spec",
+    "gold": "EagleSpeculator",
+    "orig_rank": 1,
+    "para_rank": null
+   },
+   {
+    "id": "hidden-states-extract",
+    "gold": "ExtractHiddenStatesProposer",
+    "orig_rank": 1,
+    "para_rank": null
+   },
+   {
+    "id": "rejection-sampler",
+    "gold": "RejectionSampler",
+    "orig_rank": 1,
+    "para_rank": null
+   },
+   {
+    "id": "suffix-decode",
+    "gold": "SuffixDecodingProposer",
+    "orig_rank": 2,
+    "para_rank": 3
+   },
+   {
+    "id": "adaptive-verify",
+    "gold": "AdaptiveVerificationManager",
+    "orig_rank": 1,
+    "para_rank": 5
+   },
+   {
+    "id": "mtp",
+    "gold": "MTPSpeculator",
+    "orig_rank": 1,
+    "para_rank": 2
+   }
+  ]
+ },
+ "lower+split": {
+  "summary": {
+   "orig": {
+    "MRR": 0.875,
+    "R@1": 0.75,
+    "R@10": 1.0
+   },
+   "para": {
+    "MRR": 0.284,
+    "R@1": 0.0,
+    "R@10": 0.875
+   }
+  },
+  "rows": [
+   {
+    "id": "medusa",
+    "gold": "MedusaProposer",
+    "orig_rank": 2,
+    "para_rank": 2
+   },
+   {
+    "id": "multi-mtp",
+    "gold": "prepare_input_hidden_states_and_embeddings",
+    "orig_rank": 1,
+    "para_rank": 2
+   },
+   {
+    "id": "eagle-spec",
+    "gold": "EagleSpeculator",
+    "orig_rank": 1,
+    "para_rank": null
+   },
+   {
+    "id": "hidden-states-extract",
+    "gold": "ExtractHiddenStatesProposer",
+    "orig_rank": 1,
+    "para_rank": 9
+   },
+   {
+    "id": "rejection-sampler",
+    "gold": "RejectionSampler",
+    "orig_rank": 1,
+    "para_rank": 8
+   },
+   {
+    "id": "suffix-decode",
+    "gold": "SuffixDecodingProposer",
+    "orig_rank": 2,
+    "para_rank": 3
+   },
+   {
+    "id": "adaptive-verify",
+    "gold": "AdaptiveVerificationManager",
+    "orig_rank": 1,
+    "para_rank": 5
+   },
+   {
+    "id": "mtp",
+    "gold": "MTPSpeculator",
+    "orig_rank": 1,
+    "para_rank": 2
+   }
+  ]
+ }
+}

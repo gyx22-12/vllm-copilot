@@ -1,0 +1,472 @@
+{
+ "summary": {
+  "n_questions": 18,
+  "n_with_desc": 18,
+  "mean_jaccard": 0.0384,
+  "mean_query_recall_of_desc": 0.0779,
+  "n_zero_shared": 7,
+  "n_shared_le_1": 15,
+  "mean_avoided": 9.1
+ },
+ "rows": [
+  {
+   "id": "rejection-sampler",
+   "gold": "RejectionSampler",
+   "found_desc": true,
+   "desc": "Rejection sampler class implementing speculative decoding verification and sampling with chunked and adaptive modes.",
+   "n_q_terms": 16,
+   "n_desc_terms": 11,
+   "n_shared": 1,
+   "shared": [
+    "class"
+   ],
+   "jaccard": 0.0385,
+   "query_recall_of_desc": 0.0909,
+   "n_avoided": 10,
+   "avoided_sample": [
+    "adaptive",
+    "chunked",
+    "decoding",
+    "implementing",
+    "modes",
+    "rejection",
+    "sampler",
+    "sampling",
+    "speculative",
+    "verification"
+   ]
+  },
+  {
+   "id": "vocab-mapping",
+   "gold": "VocabMapping",
+   "found_desc": true,
+   "desc": "Class mapping token IDs between target and draft tokenizers with different vocabularies.",
+   "n_q_terms": 13,
+   "n_desc_terms": 9,
+   "n_shared": 0,
+   "shared": [],
+   "jaccard": 0.0,
+   "query_recall_of_desc": 0.0,
+   "n_avoided": 9,
+   "avoided_sample": [
+    "class",
+    "different",
+    "draft",
+    "ids",
+    "mapping",
+    "target",
+    "token",
+    "tokenizers",
+    "vocabularies"
+   ]
+  },
+  {
+   "id": "ngram-lookup",
+   "gold": "_find_longest_matched_ngram_and_propose_tokens",
+   "found_desc": true,
+   "desc": "Finds the longest n-gram matching the suffix of given tokens and extracts k following tokens as draft.",
+   "n_q_terms": 13,
+   "n_desc_terms": 9,
+   "n_shared": 1,
+   "shared": [
+    "longest"
+   ],
+   "jaccard": 0.0476,
+   "query_recall_of_desc": 0.1111,
+   "n_avoided": 8,
+   "avoided_sample": [
+    "draft",
+    "extracts",
+    "finds",
+    "following",
+    "gram",
+    "matching",
+    "suffix",
+    "tokens"
+   ]
+  },
+  {
+   "id": "ngram-gpu-update",
+   "gold": "update_ngram_gpu_tensors_incremental",
+   "found_desc": true,
+   "desc": "Incrementally updates token id and token count GPU tensors for the ngram GPU proposer.",
+   "n_q_terms": 15,
+   "n_desc_terms": 8,
+   "n_shared": 1,
+   "shared": [
+    "gpu"
+   ],
+   "jaccard": 0.0455,
+   "query_recall_of_desc": 0.125,
+   "n_avoided": 7,
+   "avoided_sample": [
+    "count",
+    "incrementally",
+    "ngram",
+    "proposer",
+    "tensors",
+    "token",
+    "updates"
+   ]
+  },
+  {
+   "id": "sd-metadata",
+   "gold": "SpecDecodeMetadata",
+   "found_desc": true,
+   "desc": "Dataclass holding speculative decoding metadata with post-init and dummy construction helpers.",
+   "n_q_terms": 13,
+   "n_desc_terms": 10,
+   "n_shared": 0,
+   "shared": [],
+   "jaccard": 0.0,
+   "query_recall_of_desc": 0.0,
+   "n_avoided": 10,
+   "avoided_sample": [
+    "construction",
+    "dataclass",
+    "decoding",
+    "dummy",
+    "helpers",
+    "holding",
+    "init",
+    "metadata",
+    "post",
+    "speculative"
+   ]
+  },
+  {
+   "id": "hidden-states-extract",
+   "gold": "ExtractHiddenStatesProposer",
+   "found_desc": true,
+   "desc": "Class ExtractHiddenStatesProposer for caching hidden states during speculative decoding.",
+   "n_q_terms": 11,
+   "n_desc_terms": 7,
+   "n_shared": 0,
+   "shared": [],
+   "jaccard": 0.0,
+   "query_recall_of_desc": 0.0,
+   "n_avoided": 7,
+   "avoided_sample": [
+    "caching",
+    "class",
+    "decoding",
+    "extracthiddenstatesproposer",
+    "hidden",
+    "speculative",
+    "states"
+   ]
+  },
+  {
+   "id": "logsumexp",
+   "gold": "_compute_global_logsumexp",
+   "found_desc": true,
+   "desc": "Triton helper computing the global logsumexp from per-block local maxes and sumexps across vocabulary blocks.",
+   "n_q_terms": 12,
+   "n_desc_terms": 12,
+   "n_shared": 1,
+   "shared": [
+    "vocabulary"
+   ],
+   "jaccard": 0.0435,
+   "query_recall_of_desc": 0.0833,
+   "n_avoided": 11,
+   "avoided_sample": [
+    "block",
+    "blocks",
+    "computing",
+    "global",
+    "helper",
+    "local",
+    "logsumexp",
+    "maxes",
+    "per",
+    "sumexps",
+    "triton"
+   ]
+  },
+  {
+   "id": "adaptive-verify",
+   "gold": "AdaptiveVerificationManager",
+   "found_desc": true,
+   "desc": "Manages adaptive verification, including cost profiling, confidence recording, and draft budget allocation.",
+   "n_q_terms": 14,
+   "n_desc_terms": 11,
+   "n_shared": 1,
+   "shared": [
+    "cost"
+   ],
+   "jaccard": 0.0417,
+   "query_recall_of_desc": 0.0909,
+   "n_avoided": 10,
+   "avoided_sample": [
+    "adaptive",
+    "allocation",
+    "budget",
+    "confidence",
+    "draft",
+    "including",
+    "manages",
+    "profiling",
+    "recording",
+    "verification"
+   ]
+  },
+  {
+   "id": "medusa",
+   "gold": "MedusaProposer",
+   "found_desc": true,
+   "desc": "Medusa proposer class for generating token sequences.",
+   "n_q_terms": 13,
+   "n_desc_terms": 6,
+   "n_shared": 0,
+   "shared": [],
+   "jaccard": 0.0,
+   "query_recall_of_desc": 0.0,
+   "n_avoided": 6,
+   "avoided_sample": [
+    "class",
+    "generating",
+    "medusa",
+    "proposer",
+    "sequences",
+    "token"
+   ]
+  },
+  {
+   "id": "suffix-decode",
+   "gold": "SuffixDecodingProposer",
+   "found_desc": true,
+   "desc": "Speculative decoding proposer for Suffix Decoding, using the official Arctic Inference implementation.",
+   "n_q_terms": 14,
+   "n_desc_terms": 8,
+   "n_shared": 0,
+   "shared": [],
+   "jaccard": 0.0,
+   "query_recall_of_desc": 0.0,
+   "n_avoided": 8,
+   "avoided_sample": [
+    "arctic",
+    "decoding",
+    "implementation",
+    "inference",
+    "official",
+    "proposer",
+    "speculative",
+    "suffix"
+   ]
+  },
+  {
+   "id": "autoregressive",
+   "gold": "AutoRegressiveSpeculator",
+   "found_desc": true,
+   "desc": "Auto-regressive speculator class that manages draft model loading, attention setup, CUDA graph capture, and draft token proposal for speculative decoding.",
+   "n_q_terms": 10,
+   "n_desc_terms": 17,
+   "n_shared": 3,
+   "shared": [
+    "draft",
+    "model",
+    "token"
+   ],
+   "jaccard": 0.125,
+   "query_recall_of_desc": 0.1765,
+   "n_avoided": 14,
+   "avoided_sample": [
+    "attention",
+    "auto",
+    "capture",
+    "class",
+    "cuda",
+    "decoding",
+    "graph",
+    "loading",
+    "manages",
+    "proposal",
+    "regressive",
+    "setup",
+    "speculative",
+    "speculator"
+   ]
+  },
+  {
+   "id": "mtp",
+   "gold": "MTPSpeculator",
+   "found_desc": true,
+   "desc": "MTP speculator class defining draft model loading and prefill/multi-step decode lifecycle hooks.",
+   "n_q_terms": 12,
+   "n_desc_terms": 13,
+   "n_shared": 1,
+   "shared": [
+    "model"
+   ],
+   "jaccard": 0.0417,
+   "query_recall_of_desc": 0.0769,
+   "n_avoided": 12,
+   "avoided_sample": [
+    "class",
+    "decode",
+    "defining",
+    "draft",
+    "hooks",
+    "lifecycle",
+    "loading",
+    "mtp",
+    "multi",
+    "prefill",
+    "speculator",
+    "step"
+   ]
+  },
+  {
+   "id": "multi-mtp",
+   "gold": "prepare_input_hidden_states_and_embeddings",
+   "found_desc": true,
+   "desc": "Launches the Triton kernel preparing draft input hidden states and embeddings for speculative decoding.",
+   "n_q_terms": 14,
+   "n_desc_terms": 11,
+   "n_shared": 0,
+   "shared": [],
+   "jaccard": 0.0,
+   "query_recall_of_desc": 0.0,
+   "n_avoided": 11,
+   "avoided_sample": [
+    "decoding",
+    "draft",
+    "embeddings",
+    "hidden",
+    "input",
+    "kernel",
+    "launches",
+    "preparing",
+    "speculative",
+    "states",
+    "triton"
+   ]
+  },
+  {
+   "id": "dflash",
+   "gold": "DFlashSpeculator",
+   "found_desc": true,
+   "desc": "Speculator implementing DFlash parallel drafting for speculative decoding.",
+   "n_q_terms": 9,
+   "n_desc_terms": 7,
+   "n_shared": 1,
+   "shared": [
+    "drafting"
+   ],
+   "jaccard": 0.0667,
+   "query_recall_of_desc": 0.1429,
+   "n_avoided": 6,
+   "avoided_sample": [
+    "decoding",
+    "dflash",
+    "implementing",
+    "parallel",
+    "speculative",
+    "speculator"
+   ]
+  },
+  {
+   "id": "speculator-factory",
+   "gold": "init_speculator",
+   "found_desc": true,
+   "desc": "Initializes and returns the appropriate speculator instance based on the speculative decoding method in the config.",
+   "n_q_terms": 14,
+   "n_desc_terms": 9,
+   "n_shared": 0,
+   "shared": [],
+   "jaccard": 0.0,
+   "query_recall_of_desc": 0.0,
+   "n_avoided": 9,
+   "avoided_sample": [
+    "appropriate",
+    "config",
+    "decoding",
+    "initializes",
+    "instance",
+    "method",
+    "returns",
+    "speculative",
+    "speculator"
+   ]
+  },
+  {
+   "id": "eagle-spec",
+   "gold": "EagleSpeculator",
+   "found_desc": true,
+   "desc": "Class representing an EAGLE speculator that loads a draft model for speculative decoding.",
+   "n_q_terms": 11,
+   "n_desc_terms": 9,
+   "n_shared": 2,
+   "shared": [
+    "draft",
+    "model"
+   ],
+   "jaccard": 0.1111,
+   "query_recall_of_desc": 0.2222,
+   "n_avoided": 7,
+   "avoided_sample": [
+    "class",
+    "decoding",
+    "eagle",
+    "loads",
+    "representing",
+    "speculative",
+    "speculator"
+   ]
+  },
+  {
+   "id": "gemma4",
+   "gold": "Gemma4Proposer",
+   "found_desc": true,
+   "desc": "Gemma4 speculative decoding proposer handling multi-group KV cache and centroids masking.",
+   "n_q_terms": 20,
+   "n_desc_terms": 10,
+   "n_shared": 1,
+   "shared": [
+    "cache"
+   ],
+   "jaccard": 0.0345,
+   "query_recall_of_desc": 0.1,
+   "n_avoided": 9,
+   "avoided_sample": [
+    "centroids",
+    "decoding",
+    "gemma4",
+    "group",
+    "handling",
+    "masking",
+    "multi",
+    "proposer",
+    "speculative"
+   ]
+  },
+  {
+   "id": "dspark",
+   "gold": "DSparkSpeculator",
+   "found_desc": true,
+   "desc": "DSpark speculator class implementing draft model loading, sampling, and draft generation for speculative decoding.",
+   "n_q_terms": 12,
+   "n_desc_terms": 11,
+   "n_shared": 2,
+   "shared": [
+    "generation",
+    "model"
+   ],
+   "jaccard": 0.0952,
+   "query_recall_of_desc": 0.1818,
+   "n_avoided": 9,
+   "avoided_sample": [
+    "class",
+    "decoding",
+    "draft",
+    "dspark",
+    "implementing",
+    "loading",
+    "sampling",
+    "speculative",
+    "speculator"
+   ]
+  }
+ ]
+}

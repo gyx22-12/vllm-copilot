@@ -1,0 +1,191 @@
+{
+ "summary": {
+  "n": 8,
+  "orig": {
+   "MRR": 0.75,
+   "R@1": 0.625,
+   "R@10": 0.875
+  },
+  "para": {
+   "MRR": 0.268,
+   "R@1": 0.0,
+   "R@10": 0.75
+  },
+  "dropped_to_none": [
+   "eagle-spec"
+  ],
+  "rank_worsened": [
+   {
+    "id": "multi-mtp",
+    "orig": 1,
+    "para": 2
+   },
+   {
+    "id": "hidden-states-extract",
+    "orig": 1,
+    "para": 9
+   },
+   {
+    "id": "suffix-decode",
+    "orig": 2,
+    "para": 3
+   },
+   {
+    "id": "adaptive-verify",
+    "orig": 1,
+    "para": 5
+   },
+   {
+    "id": "mtp",
+    "orig": 1,
+    "para": 2
+   }
+  ]
+ },
+ "rows": [
+  {
+   "id": "medusa",
+   "gold": "MedusaProposer",
+   "orig_query": "Which proposer implements MEDUSA-style drafting using several classification heads stacked on the target's hidden states?",
+   "para_query": "Which component implements the multi-head-forecast drafting approach that stacks several classification heads on top of the main model's internal representations?",
+   "orig_rank": 2,
+   "para_rank": 2,
+   "orig_top3_headers": [
+    "[source vllm\\v1\\spec_decode\\dflash.py:23-317 | class DFlashProposer]",
+    "[source vllm\\v1\\spec_decode\\medusa.py:40-58 | method MedusaProposer.propose]",
+    "[source vllm\\v1\\spec_decode\\step3p5.py:276-463 | method Step3p5MTPProposer.propose]"
+   ],
+   "para_top3_headers": [
+    "[source vllm\\v1\\spec_decode\\llm_base_proposer.py:1531-1639 | method SpecDecodeBaseProposer._maybe_share_lm_head]",
+    "[source vllm\\v1\\spec_decode\\medusa.py:40-58 | method MedusaProposer.propose]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\autoregressive\\speculator.py:29-664 | class AutoRegressiveSpeculator]"
+   ]
+  },
+  {
+   "id": "multi-mtp",
+   "gold": "prepare_input_hidden_states_and_embeddings",
+   "orig_query": "How does the multi-module multi-token-prediction path prepare per-module input hidden states and embeddings for several draft modules at once?",
+   "para_query": "How does the path that drives several drafting modules simultaneously build each module's starting activations and vector representations?",
+   "orig_rank": 1,
+   "para_rank": 2,
+   "orig_top3_headers": [
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\multi_module_mtp\\speculator.py:306-370 | method MultiModuleMTPSpeculator._prepare_inputs]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\multi_module_mtp\\speculator.py:642-743 | function _prepare_input_hidden_states_and_embeddings_kernel]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\multi_module_mtp\\speculator.py:746-804 | function prepare_input_hidden_states_and_embeddings]"
+   ],
+   "para_top3_headers": [
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\multi_module_mtp\\speculator.py:372-456 | method MultiModuleMTPSpeculator._generate_drafts]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\multi_module_mtp\\speculator.py:306-370 | method MultiModuleMTPSpeculator._prepare_inputs]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\multi_module_mtp\\speculator.py:807-827 | function _pad_trailing_draft_slots_kernel]"
+   ]
+  },
+  {
+   "id": "eagle-spec",
+   "gold": "EagleSpeculator",
+   "orig_query": "Which speculator subclass specializes the autoregressive drafting path for EAGLE-style draft models?",
+   "para_query": "Which subclass of the drafting component specialises the one-token-at-a-time generation path for tree-attention-based assistant models?",
+   "orig_rank": 1,
+   "para_rank": null,
+   "orig_top3_headers": [
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\eagle\\speculator.py:12-18 | class EagleSpeculator]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\autoregressive\\speculator.py:29-664 | class AutoRegressiveSpeculator]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\multi_module_mtp\\speculator.py:72-77 | method MultiModuleMTPSpeculator.load_draft_model]"
+   ],
+   "para_top3_headers": [
+    "[source vllm\\v1\\spec_decode\\llm_base_proposer.py:71-1853 | class SpecDecodeBaseProposer]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\dflash2\\speculator.py:181-217 | method DFlash2Speculator._generate_draft]",
+    "[source vllm\\v1\\spec_decode\\utils.py:307-454 | function copy_and_expand_eagle_inputs_kernel]"
+   ]
+  },
+  {
+   "id": "hidden-states-extract",
+   "gold": "ExtractHiddenStatesProposer",
+   "orig_query": "Which proposer extracts hidden states from the target model to feed a draft model for EAGLE-style speculative decoding?",
+   "para_query": "Which component pulls internal activations out of the main model so they can be handed to a smaller assistant model?",
+   "orig_rank": 1,
+   "para_rank": 9,
+   "orig_top3_headers": [
+    "[source vllm\\v1\\spec_decode\\extract_hidden_states.py:352-394 | method ExtractHiddenStatesProposer.load_model]",
+    "[source vllm\\v1\\spec_decode\\extract_hidden_states.py:88-175 | method ExtractHiddenStatesProposer.propose]",
+    "[source vllm\\v1\\spec_decode\\dflash.py:23-317 | class DFlashProposer]"
+   ],
+   "para_top3_headers": [
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\dflash\\speculator.py:484-681 | function _prepare_dflash_inputs_kernel]",
+    "[source vllm\\v1\\spec_decode\\llm_base_proposer.py:1531-1639 | method SpecDecodeBaseProposer._maybe_share_lm_head]",
+    "[source vllm\\v1\\spec_decode\\llm_base_proposer.py:1438-1529 | method SpecDecodeBaseProposer._maybe_share_embeddings]"
+   ]
+  },
+  {
+   "id": "rejection-sampler",
+   "gold": "RejectionSampler",
+   "orig_query": "Which class verifies draft tokens against the target model's token probabilities, accepting or rejecting each one?",
+   "para_query": "Which class checks candidate tokens against the main model's probability distribution, keeping or discarding each one?",
+   "orig_rank": null,
+   "para_rank": null,
+   "orig_top3_headers": [
+    "[source vllm\\v1\\spec_decode\\llm_base_proposer.py:71-1853 | class SpecDecodeBaseProposer]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\extract_hidden_states.py:73-79 | method ExtractHiddenStatesSpeculator.load_model]",
+    "[source vllm\\v1\\spec_decode\\vocab_mapping.py:68-154 | class VocabMapping]"
+   ],
+   "para_top3_headers": [
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\dflash2\\speculator.py:181-217 | method DFlash2Speculator._generate_draft]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\dflash2\\speculator.py:163-179 | method DFlash2Speculator._cache_draft_logits]",
+    "[source vllm\\v1\\spec_decode\\llm_base_proposer.py:71-1853 | class SpecDecodeBaseProposer]"
+   ]
+  },
+  {
+   "id": "suffix-decode",
+   "gold": "SuffixDecodingProposer",
+   "orig_query": "How does the suffix-matching proposal method look up a suffix of the current tokens against previously seen sequences to propose a continuation?",
+   "para_query": "How does the tail-matching proposal method look up the closing part of the current tokens against earlier-seen sequences to suggest what comes next?",
+   "orig_rank": 2,
+   "para_rank": 3,
+   "orig_top3_headers": [
+    "[source vllm\\v1\\spec_decode\\ngram_proposer.py:12-174 | class NgramProposer]",
+    "[source vllm\\v1\\spec_decode\\suffix_decoding.py:35-99 | method SuffixDecodingProposer.propose]",
+    "[source vllm\\v1\\spec_decode\\ngram_proposer_gpu.py:47-160 | method NgramGPUKernel._find_first_and_extract_all_n_parallel]"
+   ],
+   "para_top3_headers": [
+    "[source vllm\\v1\\spec_decode\\ngram_proposer.py:12-174 | class NgramProposer]",
+    "[source vllm\\v1\\spec_decode\\ngram_proposer_gpu.py:316-391 | method NgramProposerGPU.propose]",
+    "[source vllm\\v1\\spec_decode\\suffix_decoding.py:35-99 | method SuffixDecodingProposer.propose]"
+   ]
+  },
+  {
+   "id": "adaptive-verify",
+   "gold": "AdaptiveVerificationManager",
+   "orig_query": "How does vLLM adaptively decide how many draft tokens to verify for each request based on measured per-step cost curves?",
+   "para_query": "How does vLLM dynamically decide how many tentative tokens to check for each request based on measured per-step cost curves?",
+   "orig_rank": 1,
+   "para_rank": 5,
+   "orig_top3_headers": [
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\adaptive_verification.py:379-437 | method AdaptiveVerificationManager.reallocate_drafts]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\adaptive_verification.py:269-337 | method AdaptiveVerificationManager.get_num_tokens]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\adaptive_verification.py:70-113 | function build_cost_tables_from_curves]"
+   ],
+   "para_top3_headers": [
+    "[source vllm\\v1\\spec_decode\\llm_base_proposer.py:1062-1112 | method SpecDecodeBaseProposer.prepare_next_token_ids_padded]",
+    "[source vllm\\v1\\spec_decode\\llm_base_proposer.py:1029-1060 | method SpecDecodeBaseProposer.prepare_next_token_ids_cpu]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\mtp\\speculator.py:43-48 | method MTPSpeculator.on_prefill_end]"
+   ]
+  },
+  {
+   "id": "mtp",
+   "gold": "MTPSpeculator",
+   "orig_query": "How does the multi-token-prediction path reuse the target model's prefill step to seed the draft model's decode?",
+   "para_query": "How does the path that predicts several tokens ahead reuse the main model's prompt-processing step to seed the assistant model's generation?",
+   "orig_rank": 1,
+   "para_rank": 2,
+   "orig_top3_headers": [
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\mtp\\speculator.py:43-48 | method MTPSpeculator.on_prefill_end]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\mtp\\speculator.py:50-54 | method MTPSpeculator.on_multi_step_decode_begin]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\autoregressive\\speculator.py:29-664 | class AutoRegressiveSpeculator]"
+   ],
+   "para_top3_headers": [
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\dspark\\speculator.py:43-87 | method DSparkSpeculator.__init__]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\mtp\\speculator.py:43-48 | method MTPSpeculator.on_prefill_end]",
+    "[source vllm\\v1\\worker\\gpu\\spec_decode\\multi_module_mtp\\speculator.py:372-456 | method MultiModuleMTPSpeculator._generate_drafts]"
+   ]
+  }
+ ]
+}

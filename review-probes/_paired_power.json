@@ -1,0 +1,327 @@
+{
+ "per_question_first_hit_rank": [
+  {
+   "id": "rejection-sampler",
+   "gold": "RejectionSampler",
+   "S1": null,
+   "S2": null,
+   "S3": null,
+   "S4": null,
+   "S5": null,
+   "S6": null
+  },
+  {
+   "id": "vocab-mapping",
+   "gold": "VocabMapping",
+   "S1": 9,
+   "S2": 8,
+   "S3": 7,
+   "S4": null,
+   "S5": 7,
+   "S6": null
+  },
+  {
+   "id": "ngram-lookup",
+   "gold": "_find_longest_matched_ngram_and_propose_tokens",
+   "S1": 1,
+   "S2": 1,
+   "S3": 1,
+   "S4": 1,
+   "S5": 1,
+   "S6": 1
+  },
+  {
+   "id": "ngram-gpu-update",
+   "gold": "update_ngram_gpu_tensors_incremental",
+   "S1": null,
+   "S2": null,
+   "S3": null,
+   "S4": null,
+   "S5": null,
+   "S6": null
+  },
+  {
+   "id": "sd-metadata",
+   "gold": "SpecDecodeMetadata",
+   "S1": null,
+   "S2": null,
+   "S3": null,
+   "S4": null,
+   "S5": null,
+   "S6": null
+  },
+  {
+   "id": "hidden-states-extract",
+   "gold": "ExtractHiddenStatesProposer",
+   "S1": null,
+   "S2": null,
+   "S3": null,
+   "S4": null,
+   "S5": null,
+   "S6": null
+  },
+  {
+   "id": "logsumexp",
+   "gold": "_compute_global_logsumexp",
+   "S1": null,
+   "S2": null,
+   "S3": null,
+   "S4": null,
+   "S5": null,
+   "S6": null
+  },
+  {
+   "id": "adaptive-verify",
+   "gold": "AdaptiveVerificationManager",
+   "S1": 6,
+   "S2": 3,
+   "S3": 4,
+   "S4": 8,
+   "S5": 6,
+   "S6": 4
+  },
+  {
+   "id": "medusa",
+   "gold": "MedusaProposer",
+   "S1": null,
+   "S2": null,
+   "S3": null,
+   "S4": null,
+   "S5": null,
+   "S6": null
+  },
+  {
+   "id": "suffix-decode",
+   "gold": "SuffixDecodingProposer",
+   "S1": 1,
+   "S2": 2,
+   "S3": 2,
+   "S4": 2,
+   "S5": 1,
+   "S6": 2
+  },
+  {
+   "id": "autoregressive",
+   "gold": "AutoRegressiveSpeculator",
+   "S1": 2,
+   "S2": 2,
+   "S3": 2,
+   "S4": 2,
+   "S5": 1,
+   "S6": 3
+  },
+  {
+   "id": "mtp",
+   "gold": "MTPSpeculator",
+   "S1": 1,
+   "S2": 1,
+   "S3": 1,
+   "S4": 1,
+   "S5": 1,
+   "S6": 1
+  },
+  {
+   "id": "multi-mtp",
+   "gold": "prepare_input_hidden_states_and_embeddings",
+   "S1": null,
+   "S2": 6,
+   "S3": 6,
+   "S4": 6,
+   "S5": null,
+   "S6": 8
+  },
+  {
+   "id": "dflash",
+   "gold": "DFlashSpeculator",
+   "S1": null,
+   "S2": null,
+   "S3": null,
+   "S4": null,
+   "S5": null,
+   "S6": null
+  },
+  {
+   "id": "speculator-factory",
+   "gold": "init_speculator",
+   "S1": null,
+   "S2": 8,
+   "S3": 8,
+   "S4": null,
+   "S5": 6,
+   "S6": null
+  },
+  {
+   "id": "eagle-spec",
+   "gold": "EagleSpeculator",
+   "S1": null,
+   "S2": null,
+   "S3": null,
+   "S4": null,
+   "S5": null,
+   "S6": null
+  },
+  {
+   "id": "gemma4",
+   "gold": "Gemma4Proposer",
+   "S1": 4,
+   "S2": 6,
+   "S3": 4,
+   "S4": 6,
+   "S5": 5,
+   "S6": 5
+  },
+  {
+   "id": "dspark",
+   "gold": "DSparkSpeculator",
+   "S1": 7,
+   "S2": 3,
+   "S3": 3,
+   "S4": null,
+   "S5": 5,
+   "S6": 5
+  }
+ ],
+ "paired_vs_S1": {
+  "S2_vector_only_n20_vs_S1": {
+   "R@1": {
+    "S1": 0.167,
+    "alt": 0.111,
+    "b_S1miss_altHit": 0,
+    "c_S1hit_altMiss": 1,
+    "mcnemar_p": 1.0
+   },
+   "R@10": {
+    "S1": 0.444,
+    "alt": 0.556,
+    "b_S1miss_altHit": 2,
+    "c_S1hit_altMiss": 0,
+    "mcnemar_p": 0.5
+   },
+   "MRR": {
+    "delta": 0.004409171075837738,
+    "ci95": [
+     -0.07,
+     0.062
+    ],
+    "p_delta_le_0": 0.4186,
+    "n": 18
+   }
+  },
+  "S3_weighted_RRF_0.85_0.15_n20_vs_S1": {
+   "R@1": {
+    "S1": 0.167,
+    "alt": 0.111,
+    "b_S1miss_altHit": 0,
+    "c_S1hit_altMiss": 1,
+    "mcnemar_p": 1.0
+   },
+   "R@10": {
+    "S1": 0.444,
+    "alt": 0.556,
+    "b_S1miss_altHit": 2,
+    "c_S1hit_altMiss": 0,
+    "mcnemar_p": 0.5
+   },
+   "MRR": {
+    "delta": 0.005401234567901234,
+    "ci95": [
+     -0.067,
+     0.058
+    ],
+    "p_delta_le_0": 0.396,
+    "n": 18
+   }
+  },
+  "S4_current_RRF_n40_vs_S1": {
+   "R@1": {
+    "S1": 0.167,
+    "alt": 0.111,
+    "b_S1miss_altHit": 0,
+    "c_S1hit_altMiss": 1,
+    "mcnemar_p": 1.0
+   },
+   "R@10": {
+    "S1": 0.444,
+    "alt": 0.389,
+    "b_S1miss_altHit": 1,
+    "c_S1hit_altMiss": 2,
+    "mcnemar_p": 1.0
+   },
+   "MRR": {
+    "delta": -0.03957231040564375,
+    "ci95": [
+     -0.106,
+     0.009
+    ],
+    "p_delta_le_0": 0.9298,
+    "n": 18
+   }
+  },
+  "S5_min_rank_fusion_n20_vs_S1": {
+   "R@1": {
+    "S1": 0.167,
+    "alt": 0.222,
+    "b_S1miss_altHit": 1,
+    "c_S1hit_altMiss": 0,
+    "mcnemar_p": 1.0
+   },
+   "R@10": {
+    "S1": 0.444,
+    "alt": 0.5,
+    "b_S1miss_altHit": 1,
+    "c_S1hit_altMiss": 0,
+    "mcnemar_p": 1.0
+   },
+   "MRR": {
+    "delta": 0.03919753086419753,
+    "ci95": [
+     -0.001,
+     0.104
+    ],
+    "p_delta_le_0": 0.0382,
+    "n": 18
+   }
+  },
+  "S6_vector_n40_vs_S1": {
+   "R@1": {
+    "S1": 0.167,
+    "alt": 0.111,
+    "b_S1miss_altHit": 0,
+    "c_S1hit_altMiss": 1,
+    "mcnemar_p": 1.0
+   },
+   "R@10": {
+    "S1": 0.444,
+    "alt": 0.444,
+    "b_S1miss_altHit": 1,
+    "c_S1hit_altMiss": 1,
+    "mcnemar_p": 1.0
+   },
+   "MRR": {
+    "delta": -0.031238977072310405,
+    "ci95": [
+     -0.099,
+     0.019
+    ],
+    "p_delta_le_0": 0.8427,
+    "n": 18
+   }
+  }
+ },
+ "power": {
+  "n_questions": 18,
+  "one_question_worth_of_R@k": 0.0556,
+  "note": "配对 McNemar 精确检验：若「替代策略救回 b 题、丢掉 0 题」，双侧 p 的下界。",
+  "p_at_b_discordant": {
+   "1": 1.0,
+   "2": 0.5,
+   "3": 0.25,
+   "4": 0.125,
+   "5": 0.0625,
+   "6": 0.0312,
+   "8": 0.0078,
+   "10": 0.002
+  },
+  "questions_needed_for_p<0.05_one_sided_zero_loss": 6
+ }
+}

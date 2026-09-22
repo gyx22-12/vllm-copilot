@@ -1,0 +1,409 @@
+{
+ "n": 18,
+ "mean_idf_overlap_recall_hit": 0.466,
+ "mean_idf_overlap_recall_miss": 0.091,
+ "mean_rare_shared_hit": 1.3,
+ "mean_rare_shared_miss": 0.125,
+ "zero_rare_shared": [
+  "ngram-gpu-update",
+  "sd-metadata",
+  "logsumexp",
+  "medusa",
+  "mtp",
+  "multi-mtp",
+  "dflash",
+  "speculator-factory",
+  "eagle-spec",
+  "gemma4"
+ ],
+ "rows": [
+  {
+   "id": "rejection-sampler",
+   "gold": "RejectionSampler",
+   "n_query_terms": 25,
+   "n_shared_terms": 8,
+   "shared_terms": [
+    "and",
+    "batch",
+    "class",
+    "its",
+    "keeps",
+    "the",
+    "token",
+    "tokens"
+   ],
+   "rare_shared_terms": [
+    "keeps"
+   ],
+   "n_rare_shared": 1,
+   "idf_weighted_overlap": 0.208,
+   "recall_hit": false,
+   "final_rank": null
+  },
+  {
+   "id": "vocab-mapping",
+   "gold": "VocabMapping",
+   "n_query_terms": 15,
+   "n_shared_terms": 8,
+   "shared_terms": [
+    "a",
+    "and",
+    "between",
+    "model",
+    "small",
+    "the",
+    "tokens",
+    "two"
+   ],
+   "rare_shared_terms": [
+    "between",
+    "small",
+    "two"
+   ],
+   "n_rare_shared": 3,
+   "idf_weighted_overlap": 0.428,
+   "recall_hit": true,
+   "final_rank": 9
+  },
+  {
+   "id": "ngram-lookup",
+   "gold": "_find_longest_matched_ngram_and_propose_tokens",
+   "n_query_terms": 21,
+   "n_shared_terms": 11,
+   "shared_terms": [
+    "a",
+    "and",
+    "drafting",
+    "find",
+    "for",
+    "from",
+    "longest",
+    "match",
+    "prefix",
+    "the",
+    "within"
+   ],
+   "rare_shared_terms": [
+    "longest",
+    "within"
+   ],
+   "n_rare_shared": 2,
+   "idf_weighted_overlap": 0.417,
+   "recall_hit": true,
+   "final_rank": 1
+  },
+  {
+   "id": "ngram-gpu-update",
+   "gold": "update_ngram_gpu_tensors_incremental",
+   "n_query_terms": 16,
+   "n_shared_terms": 4,
+   "shared_terms": [
+    "as",
+    "get",
+    "gpu",
+    "in"
+   ],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.142,
+   "recall_hit": false,
+   "final_rank": null
+  },
+  {
+   "id": "sd-metadata",
+   "gold": "SpecDecodeMetadata",
+   "n_query_terms": 21,
+   "n_shared_terms": 8,
+   "shared_terms": [
+    "all",
+    "and",
+    "as",
+    "for",
+    "list",
+    "per",
+    "the",
+    "token"
+   ],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.182,
+   "recall_hit": false,
+   "final_rank": null
+  },
+  {
+   "id": "hidden-states-extract",
+   "gold": "ExtractHiddenStatesProposer",
+   "n_query_terms": 15,
+   "n_shared_terms": 9,
+   "shared_terms": [
+    "a",
+    "for",
+    "from",
+    "main",
+    "model",
+    "s",
+    "the",
+    "where",
+    "which"
+   ],
+   "rare_shared_terms": [
+    "main"
+   ],
+   "n_rare_shared": 1,
+   "idf_weighted_overlap": 0.399,
+   "recall_hit": true,
+   "final_rank": 18
+  },
+  {
+   "id": "logsumexp",
+   "gold": "_compute_global_logsumexp",
+   "n_query_terms": 15,
+   "n_shared_terms": 2,
+   "shared_terms": [
+    "the",
+    "to"
+   ],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.03,
+   "recall_hit": false,
+   "final_rank": null
+  },
+  {
+   "id": "adaptive-verify",
+   "gold": "AdaptiveVerificationManager",
+   "n_query_terms": 15,
+   "n_shared_terms": 12,
+   "shared_terms": [
+    "by",
+    "cost",
+    "counts",
+    "does",
+    "each",
+    "for",
+    "of",
+    "request",
+    "the",
+    "to",
+    "tokens",
+    "vllm"
+   ],
+   "rare_shared_terms": [
+    "counts"
+   ],
+   "n_rare_shared": 1,
+   "idf_weighted_overlap": 0.639,
+   "recall_hit": true,
+   "final_rank": 6
+  },
+  {
+   "id": "medusa",
+   "gold": "MedusaProposer",
+   "n_query_terms": 13,
+   "n_shared_terms": 2,
+   "shared_terms": [
+    "model",
+    "of"
+   ],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.06,
+   "recall_hit": false,
+   "final_rank": null
+  },
+  {
+   "id": "suffix-decode",
+   "gold": "SuffixDecodingProposer",
+   "n_query_terms": 21,
+   "n_shared_terms": 8,
+   "shared_terms": [
+    "a",
+    "already",
+    "and",
+    "cache",
+    "continue",
+    "of",
+    "that",
+    "the"
+   ],
+   "rare_shared_terms": [
+    "already"
+   ],
+   "n_rare_shared": 1,
+   "idf_weighted_overlap": 0.267,
+   "recall_hit": true,
+   "final_rank": 1
+  },
+  {
+   "id": "autoregressive",
+   "gold": "AutoRegressiveSpeculator",
+   "n_query_terms": 12,
+   "n_shared_terms": 9,
+   "shared_terms": [
+    "a",
+    "at",
+    "draft",
+    "in",
+    "loop",
+    "model",
+    "one",
+    "runs",
+    "token"
+   ],
+   "rare_shared_terms": [
+    "loop",
+    "runs"
+   ],
+   "n_rare_shared": 2,
+   "idf_weighted_overlap": 0.607,
+   "recall_hit": true,
+   "final_rank": 2
+  },
+  {
+   "id": "mtp",
+   "gold": "MTPSpeculator",
+   "n_query_terms": 16,
+   "n_shared_terms": 5,
+   "shared_terms": [
+    "model",
+    "reuse",
+    "s",
+    "the",
+    "to"
+   ],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.173,
+   "recall_hit": true,
+   "final_rank": 1
+  },
+  {
+   "id": "multi-mtp",
+   "gold": "prepare_input_hidden_states_and_embeddings",
+   "n_query_terms": 16,
+   "n_shared_terms": 3,
+   "shared_terms": [
+    "module",
+    "the",
+    "tokens"
+   ],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.065,
+   "recall_hit": false,
+   "final_rank": null
+  },
+  {
+   "id": "dflash",
+   "gold": "DFlashSpeculator",
+   "n_query_terms": 14,
+   "n_shared_terms": 11,
+   "shared_terms": [
+    "does",
+    "drafting",
+    "into",
+    "model",
+    "pass",
+    "path",
+    "run",
+    "s",
+    "same",
+    "that",
+    "the"
+   ],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.609,
+   "recall_hit": true,
+   "final_rank": 13
+  },
+  {
+   "id": "speculator-factory",
+   "gold": "init_speculator",
+   "n_query_terms": 17,
+   "n_shared_terms": 0,
+   "shared_terms": [],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.0,
+   "recall_hit": false,
+   "final_rank": null
+  },
+  {
+   "id": "eagle-spec",
+   "gold": "EagleSpeculator",
+   "n_query_terms": 15,
+   "n_shared_terms": 2,
+   "shared_terms": [
+    "draft",
+    "model"
+   ],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.039,
+   "recall_hit": false,
+   "final_rank": null
+  },
+  {
+   "id": "gemma4",
+   "gold": "Gemma4Proposer",
+   "n_query_terms": 26,
+   "n_shared_terms": 15,
+   "shared_terms": [
+    "and",
+    "cache",
+    "captured",
+    "does",
+    "for",
+    "graphs",
+    "its",
+    "key",
+    "model",
+    "one",
+    "pre",
+    "s",
+    "set",
+    "share",
+    "the"
+   ],
+   "rare_shared_terms": [],
+   "n_rare_shared": 0,
+   "idf_weighted_overlap": 0.381,
+   "recall_hit": true,
+   "final_rank": 4
+  },
+  {
+   "id": "dspark",
+   "gold": "DSparkSpeculator",
+   "n_query_terms": 19,
+   "n_shared_terms": 16,
+   "shared_terms": [
+    "a",
+    "at",
+    "candidate",
+    "does",
+    "draw",
+    "each",
+    "for",
+    "from",
+    "its",
+    "main",
+    "model",
+    "one",
+    "request",
+    "s",
+    "state",
+    "the"
+   ],
+   "rare_shared_terms": [
+    "candidate",
+    "draw",
+    "main"
+   ],
+   "n_rare_shared": 3,
+   "idf_weighted_overlap": 0.739,
+   "recall_hit": true,
+   "final_rank": 7
+  }
+ ]
+}

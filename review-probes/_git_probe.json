@@ -1,0 +1,122 @@
+{
+ "gitignore_exists": false,
+ "git_dir": false,
+ "dirs": {
+  "corpus": {
+   "files": 6842,
+   "bytes": 151614145,
+   "mb": 144.6
+  },
+  "corpus/docs": {
+   "files": 25,
+   "bytes": 352352,
+   "mb": 0.3
+  },
+  "corpus/src": {
+   "files": 6817,
+   "bytes": 151261793,
+   "mb": 144.3
+  },
+  "workspace": {
+   "files": 13,
+   "bytes": 15755,
+   "mb": 0.0
+  },
+  "mingpt": {
+   "files": 4,
+   "bytes": 21748,
+   "mb": 0.0
+  },
+  "__pycache__": {
+   "files": 21,
+   "bytes": 244848,
+   "mb": 0.2
+  }
+ },
+ "big_files": [
+  {
+   "name": "code_synth_cache.json",
+   "kb": 192.1
+  },
+  {
+   "name": "experiments.md",
+   "kb": 55.7
+  },
+  {
+   "name": "eval_data.py",
+   "kb": 43.8
+  },
+  {
+   "name": "agent.py",
+   "kb": 28.5
+  },
+  {
+   "name": "interview_qa.md",
+   "kb": 18.5
+  },
+  {
+   "name": "eval_qa.py",
+   "kb": 16.4
+  },
+  {
+   "name": "code_facts.py",
+   "kb": 13.3
+  },
+  {
+   "name": "rag_qa.md",
+   "kb": 11.9
+  },
+  {
+   "name": "rag_baseline.py",
+   "kb": 11.4
+  },
+  {
+   "name": "code_chunker.py",
+   "kb": 11.0
+  },
+  {
+   "name": "eval_code.py",
+   "kb": 10.8
+  },
+  {
+   "name": "code_index.py",
+   "kb": 10.5
+  },
+  {
+   "name": "eval_codegen.py",
+   "kb": 9.2
+  },
+  {
+   "name": "judge.py",
+   "kb": 8.9
+  },
+  {
+   "name": "agent_roadmap.md",
+   "kb": 7.2
+  },
+  {
+   "name": "check_gold.py",
+   "kb": 5.0
+  },
+  {
+   "name": "test_route.py",
+   "kb": 4.5
+  },
+  {
+   "name": "rerank.py",
+   "kb": 4.3
+  },
+  {
+   "name": "docstring_synth.py",
+   "kb": 4.2
+  },
+  {
+   "name": "answer_eval.py",
+   "kb": 4.0
+  }
+ ],
+ "counts": {
+  "root_files": 23,
+  "root_bytes_mb": 0.5
+ }
+}
