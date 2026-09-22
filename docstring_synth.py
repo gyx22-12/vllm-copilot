@@ -10,12 +10,13 @@ embedding 靠自然语言匹配，没 docstring 的符号（如 class MTPSpecula
 设计：
   - 批量合成（一次调 LLM 处理 batch_size 个符号），省时省 token。
   - temperature=0 保证可复现。
-  - 结果按 chunk 首行（[source 路径:行号 | 类型 符号名]）作键缓存到 code_synth_cache.json，
-    重复建索引不重复调 LLM。
+  - 结果按 chunk 内容哈希（剥行号区间）作键缓存到 code_synth_cache.json，重复建索引不重复
+    调 LLM；符号体一被改写就重烧，行号漂移不触发 miss。
   - 描述只是「检索锚点」，不是最终答案的出处——最终答案仍逐行 cite 到真实源码，
     所以即使描述略有偏差也不污染忠实度（里程碑 4 的 judge 只看源码上下文）。
 """
 
+import hashlib
 import json
 import os
 import re
@@ -28,13 +29,17 @@ TRUNCATE = 1200   # 每个符号喂给 LLM 的最多字符（签名+docstring+�
 
 
 def _chunk_key(text):
-    """缓存键 = 出处头去掉行号区间（[source 路径:12-73 | function xxx] → 去掉 :12-73）。
+    """缓存键 = 整段 chunk 的内容哈希（先剥掉行号区间再哈希）。
 
-    行号会随文件任何改动漂移：进缓存键后，改一行注释就让 700+ 条缓存全部 miss、
-    重烧一轮 LLM。去掉行号后键 = [source 路径 | 类型 符号名]，跨行号变动稳定。
+    旧键只取出处头去行号，得到 [路径 | 类型 符号名]：非切分块的键里没有段号，符号体被
+    改写（路径和符号名没变）时键不变 → 复用旧 desc，描述在讲一段已经改掉的代码。内容
+    哈希让「正文一变就重建」；行号漂移仍不影响（:12-73 先剥掉再哈希，改注释挪行号不
+    miss）。别把这个理由套到 _symbol_key 上——那里要的正是「路径 + 符号名」稳定（跨段去重
+    靠它），不能用内容哈希替换。
+
+    调用点在 desc 注入（_inject）之前，哈希里不含 desc，无循环依赖。
     """
-    header = text.split("\n", 1)[0]
-    return re.sub(r":\d+-\d+", "", header)
+    return hashlib.sha1(re.sub(r":\d+-\d+", "", text).encode("utf-8")).hexdigest()
 
 
 def _load_cache():

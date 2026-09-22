@@ -45,7 +45,10 @@ OVERVIEW_WEIGHT = 0.3    # module overview（文件自述）的降权系数：�
                          # 自述 docstring 字面和 query 对齐但信息密度最低，会压过真正的符号实现
 MAX_CHUNK_CHARS = 1600   # 单个 chunk 嵌入前的字符上限。bge-base-en 的 512 token 上限 ≈ 2000 字，
                          # 超长符号（实测 342 块里 91 个 >2000 字，最长 11770）只会被静默编码前半截，
-                         # 后半截检索时完全看不见还不报错。1600 留足余量，超了切成多段（见 _split_long_chunk）。
+                         # 后半截检索时完全看不见还不报错。超了切成多段（见 _split_long_chunk）。
+                         # 但 1600 按字符切仍挡不住 token 密度高的代码：measure_chunk_tokens.py 用 bge
+                         # tokenizer 实测 523 块里 98 块（18.7%）切完仍 >512 token，被静默截断。
+                         # 是否改按 token 切（MAX_CHUNK_TOKENS≈480）待定，测量见 chunk_tokens.json。
 
 
 def _inject(text, desc):
@@ -108,7 +111,7 @@ class CodeIndex:
         补上 docstring 稀疏导致的语义缺口。client 需传 DeepSeek 客户端。
         embed_model / reranker 可传入外部已加载的模型（复用，省一份内存）。
         rel_root：chunk 出处头的路径相对这个根计算（而非相对 CWD）。docstring 合成
-        缓存键 = chunk 首行（含该路径）——不传 rel_root 时换目录启动缓存全 miss，
+        缓存键 = chunk 内容哈希（含首行路径）——不传 rel_root 时换目录启动缓存全 miss，
         会重新烧一轮 LLM 合成。传源码根（如 vllm-0.29.0）让缓存键与启动目录解耦。
         """
         files = []
