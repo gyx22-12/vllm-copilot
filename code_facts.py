@@ -247,10 +247,12 @@ def check_fact(tree, fact, const_map):
 
 
 def check_facts(code, facts):
-    """把 code 解析成 AST 后逐 fact 核对，返回 [(desc, ok), ...]。语法错误则全 False。"""
+    """把 code 解析成 AST 后逐 fact 核对，返回 [(desc, ok), ...]。语法错误 / 空文件（ast.body 为空）则全 False。"""
     try:
         tree = ast.parse(code)
     except SyntaxError:
+        return [(f["desc"], False) for f in facts]
+    if not tree.body:
         return [(f["desc"], False) for f in facts]
     cm = _const_map(tree)
     return [(f["desc"], check_fact(tree, f, cm)) for f in facts]
@@ -281,6 +283,10 @@ def main():
 # llm = LLM(kv_cache_dtype="fp8", enable_prefix_caching=True)
 '''
     assert not any(ok for _, ok in check_facts(COMMENT_SHELL, FACTS)), "纯注释空壳不该拿分"
+
+    # 空文件前置：ast.body 为空 → 所有 fact 直接 False（哪怕只有 not check，也不让交白卷白捡分）
+    empty = check_facts("", [{"desc": "no guided_json", "checks": [{"kind": "name", "name": "guided_json", "not": True}]}])
+    assert empty == [("no guided_json", False)], "空文件连 not 检查也不该过"
 
     # 假阳性 2：参数值改错、正确值藏在注释里 → 值那项必须挂
     WRONG_VALUE = '''\
