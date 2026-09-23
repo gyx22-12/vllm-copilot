@@ -1,0 +1,20 @@
+# vLLM 工程 Copilot —— Python 依赖
+# 安装：py -3.12 -m pip install -r requirements.txt
+#
+# 国内直连 huggingface.co 会超时，装模型前先设镜像：
+#   $env:HF_ENDPOINT = "https://hf-mirror.com"
+
+# ---- 核心运行时 ----
+numpy                     # 向量检索、RRF 融合、BM25
+sentence-transformers     # bge-base-en-v1.5（嵌入）+ bge-reranker-base（重排）
+openai                    # DeepSeek 客户端（deepseek-chat，生成 + docstring 合成）
+torch                     # 模型推理底座（sentence-transformers 的底层）
+
+# ---- 评测专用 ----
+scipy                     # 两档测量：McNemar 精确检验(binomtest) + Wilcoxon 符号秩 + bootstrap
+transformers              # chunk token 测量（AutoTokenizer，仅 measure_chunk_tokens.py 用）
+
+# 模型（首次运行自动下载，也可离线缓存后设 HF_HUB_OFFLINE=1）：
+#   BAAI/bge-base-en-v1.5
+#   BAAI/bge-reranker-base
+# 环境变量：DEEPSEEK_API_KEY（生成 + docstring 合成必需）
