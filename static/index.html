@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vLLM 工程 Copilot</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◈</span>
+      <div>
+        <h1>vLLM 工程 Copilot</h1>
+        <p class="tagline">文档 + 源码双索引的 RAG 问答 · ReAct Agent</p>
+      </div>
+    </div>
+    <div class="scope-badge" title="本项目的语料范围">
+      <span class="dot"></span> 语料：vLLM 0.29.0 文档 + 投机解码源码
+    </div>
+  </header>
+
+  <section class="suggest-panel" id="suggestPanel">
+    <div class="suggest-head">
+      <div>
+        <h2>试试这些问题</h2>
+        <p class="suggest-sub">语料范围有限，问题越贴近下面这些，答得越准（均来自评测集）</p>
+      </div>
+      <button class="refresh-btn" id="refreshBtn" title="换一批">↻ 换一批</button>
+    </div>
+    <div class="suggest-groups" id="suggestGroups"></div>
+  </section>
+
+  <main class="chat" id="chat">
+    <div class="empty-hint" id="emptyHint">点击上面的建议，或直接在下方输入英文问题（语料与 embedding 均为英文）。</div>
+  </main>
+
+  <footer class="inputbar">
+    <textarea id="input" rows="1" placeholder="输入问题，Ctrl+Enter 发送…"></textarea>
+    <button class="send-btn" id="sendBtn">发送</button>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

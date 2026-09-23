@@ -10,6 +10,9 @@ sentence-transformers     # bge-base-en-v1.5（嵌入）+ bge-reranker-base（�
 openai                    # DeepSeek 客户端（deepseek-chat，生成 + docstring 合成）
 torch                     # 模型推理底座（sentence-transformers 的底层）
 
+# ---- Web 前端 ----
+flask                     # webapp.py 的网页服务（静态页 + /api/suggestions + /api/chat）
+
 # ---- 评测专用 ----
 scipy                     # 两档测量：McNemar 精确检验(binomtest) + Wilcoxon 符号秩 + bootstrap
 transformers              # chunk token 测量（AutoTokenizer，仅 measure_chunk_tokens.py 用）
