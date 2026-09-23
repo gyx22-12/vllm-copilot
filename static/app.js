@@ -1,12 +1,14 @@
 "use strict";
 
 const CAT_LABEL = { doc: "📄 文档配置", code: "🧩 源码实现", gen: "💻 代码需求" };
-const state = { suggestions: [], loading: false };
+const state = { suggestions: [], loading: false, hasAsked: false };
 
 const $ = (sel) => document.querySelector(sel);
 const chatEl = $("#chat");
 const inputEl = $("#input");
 const suggestGroupsEl = $("#suggestGroups");
+const suggestPanel = $("#suggestPanel");
+const collapseBtn = $("#collapseBtn");
 const emptyHintEl = $("#emptyHint");
 
 // ---------- 转义 & 极简 markdown ----------
@@ -94,6 +96,12 @@ function renderSuggestions() {
   });
 }
 
+function setCollapsed(collapsed) {
+  suggestPanel.classList.toggle("collapsed", collapsed);
+  collapseBtn.textContent = collapsed ? "展开 ▾" : "收起 ▴";
+  collapseBtn.title = collapsed ? "展开建议" : "收起建议";
+}
+
 // ---------- 对话 ----------
 function addMessage(role, text, contexts) {
   if (emptyHintEl) emptyHintEl.remove();
@@ -128,6 +136,7 @@ function ask(text) {
 async function submit() {
   const q = inputEl.value.trim();
   if (!q || state.loading) return;
+  if (!state.hasAsked) { state.hasAsked = true; setCollapsed(true); }
   inputEl.value = "";
   inputEl.style.height = "auto";
   addMessage("user", q);
@@ -155,6 +164,7 @@ async function submit() {
 
 // ---------- 事件 ----------
 $("#refreshBtn").addEventListener("click", loadSuggestions);
+$("#collapseBtn").addEventListener("click", () => setCollapsed(!suggestPanel.classList.contains("collapsed")));
 $("#sendBtn").addEventListener("click", submit);
 inputEl.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submit(); }
