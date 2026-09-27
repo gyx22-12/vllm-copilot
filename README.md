@@ -136,7 +136,7 @@ rag-project/
 
 1. **语义召回是真短板**：抽象档召回覆盖率 0.53，8/17 题 gold 没进 top-20。方向：描述合成的 prompt 改进、
    更大嵌入模型（实验 10 曾因 chunk 太小被否掉，需在 chunk 修好后再测）、查询扩展。
-2. **chunk 大小是主导瓶颈**（实验 10）：18.7% 的 chunk 超 512 token 被截断，RERANK 最多喂 768 字符。
+2. **chunk 大小是主导瓶颈**（实验 10，文档侧）：文档 chunk 切散仍是检索上限主因。代码侧「18.7% 块超 512 token 被静默截断」已改按 token 切分修掉（`MAX_CHUNK_TOKENS=460`，实测 0% 超线）；RERANK 最多喂 768 字符仍是有意保留的重排上限。
 3. **router 第 4 步缺失**：实验 20 证明融合策略的价值按题型翻转，但 Agent 的 `route()` 目前还没有
    「按 query 是否含术语线索选融合」这一步——这是把 0.53 溢价「捡回来」的最直接落点。
 4. **一条题面标注**：抽象档 dflash 题面「merges the main model's work into the same pass」是错误概括

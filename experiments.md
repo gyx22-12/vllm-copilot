@@ -626,7 +626,7 @@ hint 也改成「写/改代码，用 write_file 或 edit_file」。
 |---|---|---|---|
 | 1 | BM25 分词不分大小写 | tokenize 不 lower，`RejectionSampler` 被劈成两个词 | `text.lower()`（R@10 0.875→1.000）|
 | 2 | LLM 非法 JSON 崩掉整个任务 | `execute()` 的 `json.loads` 不防错 | try/except 接住，错误喂回 LLM 重试 |
-| 3 | 长代码块静默截断 | 342 块里 91 个 >2000 字，embedding 只编码前半截不报错 | `_split_long_chunk` 按行切成 ≤1600 字多段，带 `[part i/n]` |
+| 3 | 长代码块静默截断 | 342 块里 91 个 >2000 字，embedding 只编码前半截不报错 | `_split_long_chunk` 切成 ≤460 token 多段，带 `[part i/n]`（按 1600 字切仍挡不住 token 密度，实测 18.7% 块超 512；改按 token 切后 0% 超线）|
 | 4 | 空段（只有标题没正文）被丢 | `_chunk_section` 对空 body 返回 []，标题文本蒸发 | 空 body 但有标题时单独成 chunk |
 | 5 | edit_file 空串 | `old_string=""` 匹配任意位置，`replace("", …)` 插到文件头 | 拒绝空 old_string |
 | 6 | 缓存键含行号 | 出处头 `path:12-73` 进缓存键，改一行就 700+ 缓存全 miss 重烧 LLM | `re.sub(r":\d+-\d+", "", header)` 去行号 |

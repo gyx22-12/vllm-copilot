@@ -19,12 +19,14 @@ import shutil
 from code_chunker import chunk_python
 from code_index import _split_long_chunk
 from agent import CODE_DIRS, _VLLM_ROOT
+from transformers import AutoTokenizer
 
 CACHE = "code_synth_cache.json"
 
 
 def build_chunks():
     """复刻 CodeIndex.load 的切块循环（不含 embedding/BM25/rerank/synth），只产 chunk 文本。"""
+    tok = AutoTokenizer.from_pretrained("BAAI/bge-base-en-v1.5")
     files = []
     for d in CODE_DIRS:
         for p in glob.glob(os.path.join(d, "**", "*.py"), recursive=True):
@@ -41,7 +43,7 @@ def build_chunks():
             continue
         rel = os.path.relpath(p, _VLLM_ROOT)
         for text, _line in chunk_python(rel, src):
-            for rel2, text2 in _split_long_chunk(rel, text):
+            for rel2, text2 in _split_long_chunk(rel, text, tok):
                 chunks.append((rel2, text2))
     return chunks
 

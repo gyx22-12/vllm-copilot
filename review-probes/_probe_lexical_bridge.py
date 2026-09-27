@@ -18,6 +18,7 @@ os.chdir(r"C:\Users\GYX\rag-project")
 from bm25 import BM25, tokenize
 from code_chunker import chunk_python
 from code_index import _split_long_chunk
+from transformers import AutoTokenizer
 from eval_data import CODE_QA_SET
 from eval_code import _has_symbol
 from agent import CODE_DIRS
@@ -30,6 +31,7 @@ files = []
 for d in CODE_DIRS:
     files += glob.glob(os.path.join(d, "**", "*.py"), recursive=True)
 files = sorted({f for f in files if "__pycache__" not in f})
+tok = AutoTokenizer.from_pretrained("BAAI/bge-base-en-v1.5")
 chunks = []
 for p in files:
     try:
@@ -39,7 +41,7 @@ for p in files:
         continue
     rel = os.path.relpath(p, VLLM_ROOT)
     for text, _ in chunk_python(rel, src):
-        for _r, t2 in _split_long_chunk(rel, text):
+        for _r, t2 in _split_long_chunk(rel, text, tok):
             chunks.append(t2)
 
 bm = BM25(chunks)  # 只为拿 df / idf，不调任何模型

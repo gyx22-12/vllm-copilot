@@ -43,12 +43,12 @@ RERANK_MODEL = "BAAI/bge-reranker-base"
 RERANK_MAX_CHARS = 768   # 重排前把候选截到 768 字符（≈200 token，远低于 bge-reranker 512 上限）
 OVERVIEW_WEIGHT = 0.3    # module overview（文件自述）的降权系数：代码索引面向「实现题」，
                          # 自述 docstring 字面和 query 对齐但信息密度最低，会压过真正的符号实现
-MAX_CHUNK_CHARS = 1600   # 单个 chunk 嵌入前的字符上限。bge-base-en 的 512 token 上限 ≈ 2000 字，
-                         # 超长符号（实测 342 块里 91 个 >2000 字，最长 11770）只会被静默编码前半截，
-                         # 后半截检索时完全看不见还不报错。超了切成多段（见 _split_long_chunk）。
-                         # 但 1600 按字符切仍挡不住 token 密度高的代码：measure_chunk_tokens.py 用 bge
-                         # tokenizer 实测 523 块里 98 块（18.7%）切完仍 >512 token，被静默截断。
-                         # 是否改按 token 切（MAX_CHUNK_TOKENS≈480）待定，测量见 chunk_tokens.json。
+MAX_CHUNK_TOKENS = 460   # 单个 chunk 嵌入前的 token 上限。bge-base-en 的静默截断按 512 **token**
+                         # 计，代码 token 密度远高于自然语言（短标识符/标点各占 1 token），按字符切
+                         # （旧 1600 字）挡不住：实测 523 块里 98 块（18.7%）切完仍 >512 token 被静默
+                         # 截断（chunk_tokens.json）。改按 token 切，用与 embedding 同源的 tokenizer
+                         # 数（_split_long_chunk）。460 留 ~52 的裕量给 [CLS]/[SEP]（2 token）和 synth
+                         # 注入的那句合成描述（~10-30 token），让最终编码长度稳在 512 内。
 
 
 def _inject(text, desc):
@@ -59,23 +59,45 @@ def _inject(text, desc):
     return header + "\n# " + desc + "\n" + rest
 
 
-def _split_long_chunk(rel, text, max_chars=MAX_CHUNK_CHARS):
-    """把超长的代码 chunk 按行切成 ≤max_chars 的多段，每段保留出处头 + [part i/n] 标记。
+def _tok_count(tokenizer, text):
+    """用与 embedding 同源的 tokenizer 数 token（不含 [CLS]/[SEP]）。
 
-    背景：embedding（bge 512 token）上限约 2000 字，超长符号只编码前半截（静默截断，不报错）。
+    显式传一个远超模型上限的 max_length：不传时 transformers 会对 >512 的序列打「超过
+    model_max_length」的警告（哪怕只是数 token、并不真正编码——见 _eventual_warn_about_too_long_sequence，
+    它只在 max_length is None 时告警）。不传 truncation，所以 max_length 只用来关掉警告、不真的截断，
+    token 数不受影响。
+    """
+    return len(tokenizer.encode(text, add_special_tokens=False, max_length=10**6))
+
+
+def _split_long_chunk(rel, text, tokenizer, max_tokens=MAX_CHUNK_TOKENS):
+    """把超长的代码 chunk 按 token 切成 ≤max_tokens 的多段，每段保留出处头 + [part i/n] 标记。
+
+    背景：embedding（bge 512 token）的上限按 token 计，超长符号只编码前半截（静默截断，不报错）。
+    按字符切（旧 1600 字）挡不住 token 密度高的代码，改成用 tokenizer 逐段数 token。
     切成多段后每段独立成向量，完整覆盖长函数/长类；出处头保留，检索结果仍能逐段 cite 到源码。
     """
-    if len(text) <= max_chars:
+    if not text:
+        return [(rel, text)]
+    if _tok_count(tokenizer, text) <= max_tokens:
         return [(rel, text)]
     lines = text.split("\n")
     header = lines[0]
     body = lines[1:]
-    parts, cur = [], []
+    # 每段最终文本 = header + " [part i/n]" + "\n" + 若干 body 行；段号后缀约 6 token、换行约
+    # 1 token，先按 7 token 预留，让「header+段号+body」整体 ≤ max_tokens。max_tokens 本身已给
+    # [CLS]/[SEP] 和注入的描述留了裕量（见 MAX_CHUNK_TOKENS）。
+    budget = max_tokens - _tok_count(tokenizer, header) - 7
+    if budget <= 0:
+        budget = max_tokens  # header 本身超长（罕见）时退化，别死循环
+    parts, cur, cur_tok = [], [], 0
     for ln in body:
-        cur.append(ln)
-        if sum(len(x) for x in cur) + len(cur) >= max_chars:
+        t = _tok_count(tokenizer, ln) + 1  # +1 = 行尾换行
+        if cur and cur_tok + t > budget:
             parts.append("\n".join(cur))
-            cur = []
+            cur, cur_tok = [], 0
+        cur.append(ln)
+        cur_tok += t
     if cur:
         parts.append("\n".join(cur))
     n = len(parts)
@@ -114,6 +136,10 @@ class CodeIndex:
         缓存键 = chunk 内容哈希（含首行路径）——不传 rel_root 时换目录启动缓存全 miss，
         会重新烧一轮 LLM 合成。传源码根（如 vllm-0.29.0）让缓存键与启动目录解耦。
         """
+        # 先加载 embedder：_split_long_chunk 按 token 切块要用它的 tokenizer（与 embedding 严格同源，
+        # 避免字符/token 换算误差）。嵌入权重本来就要加载，这里只是把加载时机提前，不新增内存。
+        self._embed = embed_model or SentenceTransformer(EMBED_MODEL)
+
         files = []
         for d in src_dirs:
             for p in glob.glob(os.path.join(d, "**", "*.py"), recursive=True):
@@ -135,7 +161,7 @@ class CodeIndex:
             rel = os.path.relpath(p, rel_root) if rel_root else os.path.relpath(p)
             # ↑ 相对 rel_root（源码根）而非 CWD：出处头/合成缓存键不随启动目录漂移
             for text, _line in chunk_python(rel, src):
-                for rel2, text2 in _split_long_chunk(rel, text):
+                for rel2, text2 in _split_long_chunk(rel, text, self._embed.tokenizer):
                     chunks.append((rel2, text2))
                     types.append("module overview" if "| module overview]" in text2 else "symbol")
 
@@ -143,7 +169,6 @@ class CodeIndex:
         self._overview_mask = np.array([t == "module overview" for t in types], dtype=bool)
         if synth:
             self._synthesize(client)
-        self._embed = embed_model or SentenceTransformer(EMBED_MODEL)
         self.vecs = embed([c for _, c in self.chunks], self._embed)
         self.bm25 = BM25([c for _, c in self.chunks])
         self._rerank = reranker or Reranker(RERANK_MODEL)
