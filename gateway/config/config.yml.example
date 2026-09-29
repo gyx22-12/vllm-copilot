@@ -1,0 +1,20 @@
+server:
+  port: ":8080"
+grpc:
+  addr: "localhost:50051"
+redis:
+  addr: "localhost:6379"
+  password: ""
+  db: 0
+jwt:
+  secret: "change-me-in-production"
+  ttl: 72
+cache:
+  ttl: 600
+auth:
+  enabled: false
+  username: "admin"
+  password: "admin123"
+rate:
+  limit: 60
+  window: 60

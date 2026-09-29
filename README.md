@@ -48,6 +48,26 @@
 - **代码检索**（`code_chunker.py` / `code_index.py` / `docstring_synth.py`）：把源码按 AST 符号（函数/类/常量/字段）切块，**用 LLM 为每个符号合成一句英文描述作为嵌入锚点**（`OVERVIEW_WEIGHT=0.3`），让「函数名和问题字面不重合」时仍能被向量召回。
 - **模型**：`BAAI/bge-base-en-v1.5`（嵌入）、`BAAI/bge-reranker-base`（重排）、`deepseek-chat`（生成/合成）。
 
+### 服务化：Go 网关 + gRPC 分层（Python 做脑、Go 做壳）
+
+```
+浏览器 / 客户端
+   │  HTTP (JSON)
+   ▼
+Go 网关 (Gin)  ── 融入：JWT 鉴权 / Redis 缓存 / 限流
+   │  gRPC (protobuf)
+   ▼
+Python gRPC 服务 ── agent.run 原样包装，索引常驻内存
+   │
+   ▼
+检索（双索引）+ ReAct + DeepSeek 生成
+```
+
+- **`proto/copilot.proto`**：Go 与 Python 共用的 gRPC 接口（`Copilot.Run`：query → answer + contexts）。
+- **`grpc_server/`（Python）**：`import agent → get_client → load_index` 一次性加载索引常驻内存，`server.py` 起 gRPC（`:50051`）；服务面默认只开 `search` + `search_code`，不开 run_python/run_file/write（最安全）。
+- **`gateway/`（Go）**：Gin 起 HTTP（`:8080`），gRPC client 连 Python 服务；`/api/chat` 走「限流 → JWT 鉴权 → Redis 缓存(cache-aside) → gRPC Run」，`/api/token` 签发 JWT。
+- **为什么这么分**：检索/推理是 Python 生态（PyTorch、sentence-transformers）的护城河，保持不动；网关、鉴权、缓存、限流是 Go 微服务的强项，独立成壳——两端用 protobuf 契约解耦，可分别部署/扩缩容。
+
 ---
 
 ## 核心结果：两档测量（实验 20）
@@ -104,6 +124,20 @@ $env:DEEPSEEK_API_KEY = "<你的 key>"          # 生成 + docstring 合成必�
 # 4. 跑起来
 py -3.12 agent.py          # 交互式问答 Copilot
 py -3.12 eval_two_tier.py  # 复现两档测量（12 格消融 + L1/L2 报告）
+
+py -3.12 webapp.py         # Flask 网页版（纯 Python 直连路径，作对照）
+
+# ---- 服务化（Go 网关 + gRPC，见「架构 · 服务化」）----
+# 4.1 Python gRPC 服务（先起，首次加载索引约 1~6 分钟）
+#     DEEPSEEK_API_KEY 放环境变量，或写入项目根 .env（已 gitignore，服务自动读取）
+cd grpc_server && python3 server.py        # 监听 :50051
+
+# 4.2 Go 网关（另开终端；需 go 1.26 + Redis 在 6379）
+cd gateway && go run .                      # 监听 :8080
+
+# 4.3 走网关问答
+curl -X POST localhost:8080/api/chat -H "Content-Type: application/json" -d "{\"query\":\"What is vLLM?\"}"
+# → {"answer":"...","contexts":["..."]}，与 webapp 的 /api/chat 同构
 ```
 
 ---
@@ -127,6 +161,15 @@ rag-project/
 ├── experiments.md         # ★ 20 个实验的完整记录（先读这个）
 ├── agent_roadmap.md       # Agent 设计路线
 ├── interview_qa.md / rag_qa.md   # 面试问答准备
+├── proto/                 # ★ gRPC 接口定义（Go + Python 共用）
+│   └── copilot.proto
+├── grpc_server/           # ★ Python gRPC 服务（索引常驻内存）
+│   ├── server.py
+│   └── copilot_pb2*.py    # 生成
+├── gateway/               # ★ Go 网关（Gin + gRPC client + JWT + Redis + 限流）
+│   ├── main.go
+│   ├── internal/{grpcclient,auth,cache,handler}/
+│   └── config/config.yml.example
 └── review-probes/         # 复审用的一次性探针脚本与结论
 ```
 

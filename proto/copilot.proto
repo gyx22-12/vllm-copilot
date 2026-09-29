@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package copilot;
+
+option go_package = "github.com/gyx22-12/vllm-copilot/gateway/pb;pb";
+
+// Copilot 是 vLLM 工程问答的核心服务：Python 侧做检索 + ReAct 推理（脑），
+// Go 网关通过 gRPC 调用它（壳）。
+service Copilot {
+  // Run 执行一次问答：query 进，answer + 出处 contexts 出。
+  rpc Run(QueryRequest) returns (AnswerReply);
+}
+
+message QueryRequest {
+  string query = 1;
+}
+
+message AnswerReply {
+  string answer = 1;              // 最终答案
+  repeated string contexts = 2;   // 检索到的上下文（用于忠实度评估）
+}

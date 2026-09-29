@@ -1,0 +1,88 @@
+package main
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/gyx22-12/vllm-copilot/gateway/config"
+	"github.com/gyx22-12/vllm-copilot/gateway/internal/auth"
+	"github.com/gyx22-12/vllm-copilot/gateway/internal/cache"
+	"github.com/gyx22-12/vllm-copilot/gateway/internal/grpcclient"
+	"github.com/gyx22-12/vllm-copilot/gateway/internal/handler"
+)
+
+func main() {
+	config.Load("config/config.yml")
+
+	grpcClient, err := grpcclient.New(config.AppConfig.Grpc.Addr)
+	if err != nil {
+		log.Fatalf("连接 gRPC 服务失败: %v", err)
+	}
+	defer grpcClient.Close()
+
+	redisClient := cache.New(config.AppConfig.Redis.Addr, config.AppConfig.Redis.Password, config.AppConfig.Redis.DB)
+	if err := redisClient.Ping(context.Background()); err != nil {
+		log.Printf("警告：Redis 连接失败（缓存/限流降级，不影响正确性）: %v", err)
+	}
+
+	chatHandler := handler.NewChatHandler(grpcClient, redisClient, config.AppConfig.Cache.TTL)
+
+	r := gin.Default()
+
+	r.GET("/healthz", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	})
+
+	// /api/token：用配置里的 demo 凭据签发 JWT（演示网关鉴权流程）。
+	r.POST("/api/token", func(c *gin.Context) {
+		var req struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
+			return
+		}
+		if req.Username != config.AppConfig.Auth.Username || req.Password != config.AppConfig.Auth.Password {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "用户名或密码错误"})
+			return
+		}
+		token, err := auth.GenerateToken(req.Username, config.AppConfig.JWT.Secret, config.AppConfig.JWT.TTL)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "签发失败"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"token": token})
+	})
+
+	// /api/chat：限流 → JWT 鉴权（可配置开关）→ 问答。
+	api := r.Group("/api")
+	api.Use(rateLimit(redisClient, config.AppConfig.Rate.Limit, time.Duration(config.AppConfig.Rate.Window)*time.Second))
+	api.Use(auth.Middleware(config.AppConfig.Auth.Enabled, config.AppConfig.JWT.Secret))
+	api.POST("/chat", chatHandler.Chat)
+
+	log.Printf("Go 网关已启动：%s（gRPC → %s）", config.AppConfig.Server.Port, config.AppConfig.Grpc.Addr)
+	if err := r.Run(config.AppConfig.Server.Port); err != nil {
+		log.Fatalf("启动失败: %v", err)
+	}
+}
+
+// rateLimit 固定窗口限流中间件：按客户端 IP 计数，超限返回 429；Redis 故障时降级放行。
+func rateLimit(r *cache.Redis, limit int, window time.Duration) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		allowed, err := r.Allow(c.Request.Context(), "rate:"+c.ClientIP(), limit, window)
+		if err != nil {
+			c.Next()
+			return
+		}
+		if !allowed {
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{"error": "请求过于频繁，请稍后再试"})
+			return
+		}
+		c.Next()
+	}
+}
