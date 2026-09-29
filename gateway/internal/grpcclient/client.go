@@ -33,3 +33,8 @@ func (c *Client) Run(ctx context.Context, query string) (*pb.AnswerReply, error)
 	defer cancel()
 	return c.pb.Run(ctx, &pb.QueryRequest{Query: query})
 }
+
+// NewWithConn 用已有的连接构造客户端（bufconn 单测注入用，绕开真实 TCP）。
+func NewWithConn(conn *grpc.ClientConn) *Client {
+	return &Client{conn: conn, pb: pb.NewCopilotClient(conn)}
+}
