@@ -63,9 +63,9 @@ Python gRPC 服务 ── agent.run 原样包装，索引常驻内存
 检索（双索引）+ ReAct + DeepSeek 生成
 ```
 
-- **`proto/copilot.proto`**：Go 与 Python 共用的 gRPC 接口（`Copilot.Run`：query → answer + contexts）。
+- **`proto/copilot.proto`**：Go 与 Python 共用的 gRPC 接口（`Copilot.Run`：query → answer + contexts；`Copilot.Suggestions`：返回评测集抽样的建议问题）。
 - **`grpc_server/`（Python）**：`import agent → get_client → load_index` 一次性加载索引常驻内存，`server.py` 起 gRPC（`:50051`）；服务面默认只开 `search` + `search_code`，不开 run_python/run_file/write（最安全）。
-- **`gateway/`（Go）**：Gin 起 HTTP（`:8080`），gRPC client 连 Python 服务；`/api/chat` 走「限流 → JWT 鉴权 → Redis 缓存(cache-aside) → gRPC Run」，`/api/token` 签发 JWT。
+- **`gateway/`（Go）**：Gin 起 HTTP（`:8080`），gRPC client 连 Python 服务；`/api/chat` 走「限流 → JWT 鉴权 → Redis 缓存(cache-aside) → gRPC Run」，`/api/suggestions` 转发建议问题，`/api/token` 签发 JWT；同时托管前端页面（`/` 与 `/static/`，复用项目根 static/，与 webapp.py 同一份文件）。
 - **为什么这么分**：检索/推理是 Python 生态（PyTorch、sentence-transformers）的护城河，保持不动；网关、鉴权、缓存、限流是 Go 微服务的强项，独立成壳——两端用 protobuf 契约解耦，可分别部署/扩缩容。
 
 ---
@@ -133,11 +133,12 @@ py -3.12 webapp.py         # Flask 网页版（纯 Python 直连路径，作对�
 cd grpc_server && python3 server.py        # 监听 :50051
 
 # 4.2 Go 网关（另开终端；需 go 1.26 + Redis 在 6379）
-cd gateway && go run .                      # 监听 :8080
+cd gateway && go run .                      # 监听 :8080，浏览器打开 http://localhost:8080/ 即前端
 
 # 4.3 走网关问答
 curl -X POST localhost:8080/api/chat -H "Content-Type: application/json" -d "{\"query\":\"What is vLLM?\"}"
 # → {"answer":"...","contexts":["..."]}，与 webapp 的 /api/chat 同构
+curl localhost:8080/api/suggestions          # 建议问题（取自评测集，走 gRPC）
 ```
 
 ---

@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Copilot_Run_FullMethodName = "/copilot.Copilot/Run"
+	Copilot_Run_FullMethodName         = "/copilot.Copilot/Run"
+	Copilot_Suggestions_FullMethodName = "/copilot.Copilot/Suggestions"
 )
 
 // CopilotClient is the client API for Copilot service.
@@ -31,6 +32,8 @@ const (
 type CopilotClient interface {
 	// Run 执行一次问答：query 进，answer + 出处 contexts 出。
 	Run(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*AnswerReply, error)
+	// Suggestions 返回建议问题（取自评测集随机抽样，供前端「试试这些问题」）。
+	Suggestions(ctx context.Context, in *SuggestionsRequest, opts ...grpc.CallOption) (*SuggestionsReply, error)
 }
 
 type copilotClient struct {
@@ -51,6 +54,16 @@ func (c *copilotClient) Run(ctx context.Context, in *QueryRequest, opts ...grpc.
 	return out, nil
 }
 
+func (c *copilotClient) Suggestions(ctx context.Context, in *SuggestionsRequest, opts ...grpc.CallOption) (*SuggestionsReply, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SuggestionsReply)
+	err := c.cc.Invoke(ctx, Copilot_Suggestions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CopilotServer is the server API for Copilot service.
 // All implementations must embed UnimplementedCopilotServer
 // for forward compatibility.
@@ -60,6 +73,8 @@ func (c *copilotClient) Run(ctx context.Context, in *QueryRequest, opts ...grpc.
 type CopilotServer interface {
 	// Run 执行一次问答：query 进，answer + 出处 contexts 出。
 	Run(context.Context, *QueryRequest) (*AnswerReply, error)
+	// Suggestions 返回建议问题（取自评测集随机抽样，供前端「试试这些问题」）。
+	Suggestions(context.Context, *SuggestionsRequest) (*SuggestionsReply, error)
 	mustEmbedUnimplementedCopilotServer()
 }
 
@@ -72,6 +87,9 @@ type UnimplementedCopilotServer struct{}
 
 func (UnimplementedCopilotServer) Run(context.Context, *QueryRequest) (*AnswerReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method Run not implemented")
+}
+func (UnimplementedCopilotServer) Suggestions(context.Context, *SuggestionsRequest) (*SuggestionsReply, error) {
+	return nil, status.Error(codes.Unimplemented, "method Suggestions not implemented")
 }
 func (UnimplementedCopilotServer) mustEmbedUnimplementedCopilotServer() {}
 func (UnimplementedCopilotServer) testEmbeddedByValue()                 {}
@@ -112,6 +130,24 @@ func _Copilot_Run_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Copilot_Suggestions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SuggestionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CopilotServer).Suggestions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Copilot_Suggestions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CopilotServer).Suggestions(ctx, req.(*SuggestionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Copilot_ServiceDesc is the grpc.ServiceDesc for Copilot service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -122,6 +158,10 @@ var Copilot_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Run",
 			Handler:    _Copilot_Run_Handler,
+		},
+		{
+			MethodName: "Suggestions",
+			Handler:    _Copilot_Suggestions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

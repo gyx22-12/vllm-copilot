@@ -117,6 +117,138 @@ func (x *AnswerReply) GetContexts() []string {
 	return nil
 }
 
+type SuggestionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SuggestionsRequest) Reset() {
+	*x = SuggestionsRequest{}
+	mi := &file_copilot_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SuggestionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SuggestionsRequest) ProtoMessage() {}
+
+func (x *SuggestionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_copilot_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SuggestionsRequest.ProtoReflect.Descriptor instead.
+func (*SuggestionsRequest) Descriptor() ([]byte, []int) {
+	return file_copilot_proto_rawDescGZIP(), []int{2}
+}
+
+type Suggestion struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Category      string                 `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"` // doc / code / gen
+	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Suggestion) Reset() {
+	*x = Suggestion{}
+	mi := &file_copilot_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Suggestion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Suggestion) ProtoMessage() {}
+
+func (x *Suggestion) ProtoReflect() protoreflect.Message {
+	mi := &file_copilot_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Suggestion.ProtoReflect.Descriptor instead.
+func (*Suggestion) Descriptor() ([]byte, []int) {
+	return file_copilot_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Suggestion) GetCategory() string {
+	if x != nil {
+		return x.Category
+	}
+	return ""
+}
+
+func (x *Suggestion) GetText() string {
+	if x != nil {
+		return x.Text
+	}
+	return ""
+}
+
+type SuggestionsReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Suggestions   []*Suggestion          `protobuf:"bytes,1,rep,name=suggestions,proto3" json:"suggestions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SuggestionsReply) Reset() {
+	*x = SuggestionsReply{}
+	mi := &file_copilot_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SuggestionsReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SuggestionsReply) ProtoMessage() {}
+
+func (x *SuggestionsReply) ProtoReflect() protoreflect.Message {
+	mi := &file_copilot_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SuggestionsReply.ProtoReflect.Descriptor instead.
+func (*SuggestionsReply) Descriptor() ([]byte, []int) {
+	return file_copilot_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SuggestionsReply) GetSuggestions() []*Suggestion {
+	if x != nil {
+		return x.Suggestions
+	}
+	return nil
+}
+
 var File_copilot_proto protoreflect.FileDescriptor
 
 const file_copilot_proto_rawDesc = "" +
@@ -126,9 +258,17 @@ const file_copilot_proto_rawDesc = "" +
 	"\x05query\x18\x01 \x01(\tR\x05query\"A\n" +
 	"\vAnswerReply\x12\x16\n" +
 	"\x06answer\x18\x01 \x01(\tR\x06answer\x12\x1a\n" +
-	"\bcontexts\x18\x02 \x03(\tR\bcontexts2=\n" +
+	"\bcontexts\x18\x02 \x03(\tR\bcontexts\"\x14\n" +
+	"\x12SuggestionsRequest\"<\n" +
+	"\n" +
+	"Suggestion\x12\x1a\n" +
+	"\bcategory\x18\x01 \x01(\tR\bcategory\x12\x12\n" +
+	"\x04text\x18\x02 \x01(\tR\x04text\"I\n" +
+	"\x10SuggestionsReply\x125\n" +
+	"\vsuggestions\x18\x01 \x03(\v2\x13.copilot.SuggestionR\vsuggestions2\x84\x01\n" +
 	"\aCopilot\x122\n" +
-	"\x03Run\x12\x15.copilot.QueryRequest\x1a\x14.copilot.AnswerReplyB0Z.github.com/gyx22-12/vllm-copilot/gateway/pb;pbb\x06proto3"
+	"\x03Run\x12\x15.copilot.QueryRequest\x1a\x14.copilot.AnswerReply\x12E\n" +
+	"\vSuggestions\x12\x1b.copilot.SuggestionsRequest\x1a\x19.copilot.SuggestionsReplyB0Z.github.com/gyx22-12/vllm-copilot/gateway/pb;pbb\x06proto3"
 
 var (
 	file_copilot_proto_rawDescOnce sync.Once
@@ -142,19 +282,25 @@ func file_copilot_proto_rawDescGZIP() []byte {
 	return file_copilot_proto_rawDescData
 }
 
-var file_copilot_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_copilot_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_copilot_proto_goTypes = []any{
-	(*QueryRequest)(nil), // 0: copilot.QueryRequest
-	(*AnswerReply)(nil),  // 1: copilot.AnswerReply
+	(*QueryRequest)(nil),       // 0: copilot.QueryRequest
+	(*AnswerReply)(nil),        // 1: copilot.AnswerReply
+	(*SuggestionsRequest)(nil), // 2: copilot.SuggestionsRequest
+	(*Suggestion)(nil),         // 3: copilot.Suggestion
+	(*SuggestionsReply)(nil),   // 4: copilot.SuggestionsReply
 }
 var file_copilot_proto_depIdxs = []int32{
-	0, // 0: copilot.Copilot.Run:input_type -> copilot.QueryRequest
-	1, // 1: copilot.Copilot.Run:output_type -> copilot.AnswerReply
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: copilot.SuggestionsReply.suggestions:type_name -> copilot.Suggestion
+	0, // 1: copilot.Copilot.Run:input_type -> copilot.QueryRequest
+	2, // 2: copilot.Copilot.Suggestions:input_type -> copilot.SuggestionsRequest
+	1, // 3: copilot.Copilot.Run:output_type -> copilot.AnswerReply
+	4, // 4: copilot.Copilot.Suggestions:output_type -> copilot.SuggestionsReply
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_copilot_proto_init() }
@@ -168,7 +314,7 @@ func file_copilot_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_copilot_proto_rawDesc), len(file_copilot_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

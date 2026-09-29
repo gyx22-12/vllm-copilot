@@ -30,17 +30,27 @@ type chatResponse struct {
 
 // Chat 处理 POST /api/chat：query → Redis 缓存 → gRPC Run → 回写缓存 → 返回。
 // 缓存用 cache-aside（先查、命中返回、未命中回源再写），与 ExchangeApp 文章缓存同款。
+// 字段同时兼容 question（前端 app.js 用）与 query（curl 用），二者取非空者。
 func (h *ChatHandler) Chat(c *gin.Context) {
 	var req struct {
-		Query string `json:"query"`
+		Query    string `json:"query"`
+		Question string `json:"question"`
 	}
-	if err := c.ShouldBindJSON(&req); err != nil || req.Query == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "query 不能为空"})
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
+		return
+	}
+	q := req.Query
+	if q == "" {
+		q = req.Question
+	}
+	if q == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "问题不能为空"})
 		return
 	}
 
 	ctx := context.Background()
-	cacheKey := "copilot:" + req.Query
+	cacheKey := "copilot:" + q
 	if cached, err := h.cache.Get(ctx, cacheKey); err == nil {
 		var resp chatResponse
 		if json.Unmarshal([]byte(cached), &resp) == nil {
@@ -49,7 +59,7 @@ func (h *ChatHandler) Chat(c *gin.Context) {
 		}
 	}
 
-	reply, err := h.grpc.Run(ctx, req.Query)
+	reply, err := h.grpc.Run(ctx, q)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": fmt.Sprintf("gRPC 调用失败：%v", err)})
 		return

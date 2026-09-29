@@ -34,6 +34,13 @@ func (c *Client) Run(ctx context.Context, query string) (*pb.AnswerReply, error)
 	return c.pb.Run(ctx, &pb.QueryRequest{Query: query})
 }
 
+// Suggestions 获取建议问题（前端「试试这些问题」用，数据来自评测集，轻量给 10s 超时）。
+func (c *Client) Suggestions(ctx context.Context) (*pb.SuggestionsReply, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	return c.pb.Suggestions(ctx, &pb.SuggestionsRequest{})
+}
+
 // NewWithConn 用已有的连接构造客户端（bufconn 单测注入用，绕开真实 TCP）。
 func NewWithConn(conn *grpc.ClientConn) *Client {
 	return &Client{conn: conn, pb: pb.NewCopilotClient(conn)}

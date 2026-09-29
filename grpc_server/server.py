@@ -6,8 +6,10 @@
 
 与 webapp.py 的差异：这里是「后端服务面」，不面向浏览器，所以不开 run_python / run_file /
 write_file（gRPC 只暴露 search + search_code，最安全）。检索 / ReAct 逻辑原样复用 agent.run。
+建议问题（Suggestions RPC）也复用 eval_data 的评测集，与 webapp.py 同一来源。
 """
 import os
+import random
 import sys
 from concurrent import futures
 
@@ -32,8 +34,14 @@ import grpc  # noqa: E402
 import agent  # noqa: E402
 import copilot_pb2  # noqa: E402
 import copilot_pb2_grpc  # noqa: E402
+from eval_data import QA_SET, NATURAL_QA, CODE_GEN_QUESTIONS  # noqa: E402
 
 _client = None
+
+# ---- 建议问题池（= 评测集里「用户可能问的问题 / 可能提的代码需求」，同 webapp.py）----
+_DOC = [{"category": "doc", "text": qa["q"]} for qa in QA_SET]
+_CODE = [{"category": "code", "text": q} for q in NATURAL_QA.values()]
+_GEN = [{"category": "gen", "text": g["task"]} for g in CODE_GEN_QUESTIONS]
 
 
 class CopilotServicer(copilot_pb2_grpc.CopilotServicer):
@@ -50,6 +58,16 @@ class CopilotServicer(copilot_pb2_grpc.CopilotServicer):
             context.set_details(f"处理失败：{e}")
             return copilot_pb2.AnswerReply()
         return copilot_pb2.AnswerReply(answer=answer, contexts=list(contexts))
+
+    def Suggestions(self, request, context):
+        """每次请求重新抽签：4 文档 + 3 源码 + 3 代码需求，同 webapp.py 的口径。"""
+        doc = random.sample(_DOC, min(4, len(_DOC)))
+        code = random.sample(_CODE, min(3, len(_CODE)))
+        gen = random.sample(_GEN, min(3, len(_GEN)))
+        out = []
+        for s in doc + code + gen:
+            out.append(copilot_pb2.Suggestion(category=s["category"], text=s["text"]))
+        return copilot_pb2.SuggestionsReply(suggestions=out)
 
 
 def serve():

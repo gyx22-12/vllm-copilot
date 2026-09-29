@@ -9,6 +9,8 @@ option go_package = "github.com/gyx22-12/vllm-copilot/gateway/pb;pb";
 service Copilot {
   // Run 执行一次问答：query 进，answer + 出处 contexts 出。
   rpc Run(QueryRequest) returns (AnswerReply);
+  // Suggestions 返回建议问题（取自评测集随机抽样，供前端「试试这些问题」）。
+  rpc Suggestions(SuggestionsRequest) returns (SuggestionsReply);
 }
 
 message QueryRequest {
@@ -18,4 +20,15 @@ message QueryRequest {
 message AnswerReply {
   string answer = 1;              // 最终答案
   repeated string contexts = 2;   // 检索到的上下文（用于忠实度评估）
+}
+
+message SuggestionsRequest {}
+
+message Suggestion {
+  string category = 1;   // doc / code / gen
+  string text = 2;
+}
+
+message SuggestionsReply {
+  repeated Suggestion suggestions = 1;
 }

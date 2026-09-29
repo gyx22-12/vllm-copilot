@@ -41,6 +41,11 @@ class CopilotStub:
                 request_serializer=copilot__pb2.QueryRequest.SerializeToString,
                 response_deserializer=copilot__pb2.AnswerReply.FromString,
                 _registered_method=True)
+        self.Suggestions = channel.unary_unary(
+                '/copilot.Copilot/Suggestions',
+                request_serializer=copilot__pb2.SuggestionsRequest.SerializeToString,
+                response_deserializer=copilot__pb2.SuggestionsReply.FromString,
+                _registered_method=True)
 
 
 class CopilotServicer:
@@ -55,6 +60,13 @@ class CopilotServicer:
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def Suggestions(self, request, context):
+        """Suggestions 返回建议问题（取自评测集随机抽样，供前端「试试这些问题」）。
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CopilotServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -62,6 +74,11 @@ def add_CopilotServicer_to_server(servicer, server):
                     servicer.Run,
                     request_deserializer=copilot__pb2.QueryRequest.FromString,
                     response_serializer=copilot__pb2.AnswerReply.SerializeToString,
+            ),
+            'Suggestions': grpc.unary_unary_rpc_method_handler(
+                    servicer.Suggestions,
+                    request_deserializer=copilot__pb2.SuggestionsRequest.FromString,
+                    response_serializer=copilot__pb2.SuggestionsReply.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -93,6 +110,33 @@ class Copilot:
             '/copilot.Copilot/Run',
             copilot__pb2.QueryRequest.SerializeToString,
             copilot__pb2.AnswerReply.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Suggestions(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/copilot.Copilot/Suggestions',
+            copilot__pb2.SuggestionsRequest.SerializeToString,
+            copilot__pb2.SuggestionsReply.FromString,
             options,
             channel_credentials,
             insecure,

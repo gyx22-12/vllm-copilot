@@ -15,6 +15,10 @@ import (
 	"github.com/gyx22-12/vllm-copilot/gateway/internal/handler"
 )
 
+// staticDir 前端静态资源目录（与 webapp.py 共用项目根 static/，不重复维护）。
+// 注意：go run . 需在 gateway/ 目录下执行，此路径相对该目录。
+const staticDir = "../static"
+
 func main() {
 	config.Load("config/config.yml")
 
@@ -32,6 +36,12 @@ func main() {
 	chatHandler := handler.NewChatHandler(grpcClient, redisClient, config.AppConfig.Cache.TTL)
 
 	r := gin.Default()
+
+	// 前端页面：/ 返回 index.html，/static/ 托管 css/js（与 webapp.py 同一份文件）。
+	r.Static("/static", staticDir)
+	r.GET("/", func(c *gin.Context) {
+		c.File(staticDir + "/index.html")
+	})
 
 	r.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -59,13 +69,14 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"token": token})
 	})
 
-	// /api/chat：限流 → JWT 鉴权（可配置开关）→ 问答。
+	// /api/*：限流 → JWT 鉴权（可配置开关）→ 业务。
 	api := r.Group("/api")
 	api.Use(rateLimit(redisClient, config.AppConfig.Rate.Limit, time.Duration(config.AppConfig.Rate.Window)*time.Second))
 	api.Use(auth.Middleware(config.AppConfig.Auth.Enabled, config.AppConfig.JWT.Secret))
+	api.GET("/suggestions", handler.Suggestions(grpcClient))
 	api.POST("/chat", chatHandler.Chat)
 
-	log.Printf("Go 网关已启动：%s（gRPC → %s）", config.AppConfig.Server.Port, config.AppConfig.Grpc.Addr)
+	log.Printf("Go 网关已启动：%s（gRPC → %s，前端 http://localhost%s/）", config.AppConfig.Server.Port, config.AppConfig.Grpc.Addr, config.AppConfig.Server.Port)
 	if err := r.Run(config.AppConfig.Server.Port); err != nil {
 		log.Fatalf("启动失败: %v", err)
 	}

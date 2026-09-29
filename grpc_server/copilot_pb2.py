@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rcopilot.proto\x12\x07\x63opilot\"\x1d\n\x0cQueryRequest\x12\r\n\x05query\x18\x01 \x01(\t\"/\n\x0b\x41nswerReply\x12\x0e\n\x06\x61nswer\x18\x01 \x01(\t\x12\x10\n\x08\x63ontexts\x18\x02 \x03(\t2=\n\x07\x43opilot\x12\x32\n\x03Run\x12\x15.copilot.QueryRequest\x1a\x14.copilot.AnswerReplyB0Z.github.com/gyx22-12/vllm-copilot/gateway/pb;pbb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rcopilot.proto\x12\x07\x63opilot\"\x1d\n\x0cQueryRequest\x12\r\n\x05query\x18\x01 \x01(\t\"/\n\x0b\x41nswerReply\x12\x0e\n\x06\x61nswer\x18\x01 \x01(\t\x12\x10\n\x08\x63ontexts\x18\x02 \x03(\t\"\x14\n\x12SuggestionsRequest\",\n\nSuggestion\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x0c\n\x04text\x18\x02 \x01(\t\"<\n\x10SuggestionsReply\x12(\n\x0bsuggestions\x18\x01 \x03(\x0b\x32\x13.copilot.Suggestion2\x84\x01\n\x07\x43opilot\x12\x32\n\x03Run\x12\x15.copilot.QueryRequest\x1a\x14.copilot.AnswerReply\x12\x45\n\x0bSuggestions\x12\x1b.copilot.SuggestionsRequest\x1a\x19.copilot.SuggestionsReplyB0Z.github.com/gyx22-12/vllm-copilot/gateway/pb;pbb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -36,6 +36,12 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_QUERYREQUEST']._serialized_end=55
   _globals['_ANSWERREPLY']._serialized_start=57
   _globals['_ANSWERREPLY']._serialized_end=104
-  _globals['_COPILOT']._serialized_start=106
-  _globals['_COPILOT']._serialized_end=167
+  _globals['_SUGGESTIONSREQUEST']._serialized_start=106
+  _globals['_SUGGESTIONSREQUEST']._serialized_end=126
+  _globals['_SUGGESTION']._serialized_start=128
+  _globals['_SUGGESTION']._serialized_end=172
+  _globals['_SUGGESTIONSREPLY']._serialized_start=174
+  _globals['_SUGGESTIONSREPLY']._serialized_end=234
+  _globals['_COPILOT']._serialized_start=237
+  _globals['_COPILOT']._serialized_end=369
 # @@protoc_insertion_point(module_scope)
