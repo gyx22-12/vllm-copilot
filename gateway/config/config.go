@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/spf13/viper"
 )
@@ -52,5 +53,23 @@ func Load(path string) {
 	// 环境变量覆盖（与 ExchangeApp 一致：env > config.yml）
 	if s := os.Getenv("JWT_SECRET"); s != "" {
 		AppConfig.JWT.Secret = s
+	}
+	// 容器编排（docker-compose）里用服务名取代 localhost，这里用环境变量覆盖。
+	if s := os.Getenv("GRPC_ADDR"); s != "" {
+		AppConfig.Grpc.Addr = s
+	}
+	if s := os.Getenv("REDIS_ADDR"); s != "" {
+		AppConfig.Redis.Addr = s
+	}
+	// 压测时抬高限流阈值（默认 60 次/分钟会让 k6 全打 429），同样走环境变量覆盖。
+	if s := os.Getenv("RATE_LIMIT"); s != "" {
+		if v, err := strconv.Atoi(s); err == nil {
+			AppConfig.Rate.Limit = v
+		}
+	}
+	if s := os.Getenv("RATE_WINDOW"); s != "" {
+		if v, err := strconv.Atoi(s); err == nil {
+			AppConfig.Rate.Window = v
+		}
 	}
 }

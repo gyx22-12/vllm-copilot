@@ -161,17 +161,67 @@ rag-project/
 ├── two_tier_results.json  # 实验 20 落盘结果
 ├── experiments.md         # ★ 20 个实验的完整记录（先读这个）
 ├── agent_roadmap.md       # Agent 设计路线
-├── interview_qa.md / rag_qa.md   # 面试问答准备
+├── rag_qa.md              # 面试问答准备
 ├── proto/                 # ★ gRPC 接口定义（Go + Python 共用）
 │   └── copilot.proto
 ├── grpc_server/           # ★ Python gRPC 服务（索引常驻内存）
 │   ├── server.py
+│   ├── Dockerfile         # python:3.10-slim + CPU torch
 │   └── copilot_pb2*.py    # 生成
 ├── gateway/               # ★ Go 网关（Gin + gRPC client + JWT + Redis + 限流）
 │   ├── main.go
+│   ├── Dockerfile         # 多阶段 Go 构建（golang:1.26 → alpine）
 │   ├── internal/{grpcclient,auth,cache,handler}/
 │   └── config/config.yml.example
-└── review-probes/         # 复审用的一次性探针脚本与结论
+├── static/                # 前端（index.html / app.js / style.css，由 Go 网关托管）
+├── docker-compose.yml     # ★ 三服务编排（redis + grpc-server + gateway）
+├── .dockerignore
+├── .github/workflows/ci.yml   # ★ Go CI（gofmt / vet / build / test）
+├── loadtest/k6-chat.js        # ★ k6 压测脚本
+└── docs/review-probes/    # 复审用的一次性探针脚本与结论（归档）
+```
+
+---
+
+## Docker 部署（docker-compose）
+
+三服务编排：`redis` + `grpc-server`（Python）+ `gateway`（Go），一键起整套。
+
+```bash
+# 1. 起三服务（首次 build 两个镜像，Python 侧装 CPU torch 较慢，属正常）
+docker compose up -d --build
+
+# 2. 等 Python 服务加载索引（首次约 1~6 分钟，走宿主机挂载的模型/语料）
+docker compose logs -f grpc-server
+
+# 3. 验证
+curl localhost:8080/healthz
+curl -X POST localhost:8080/api/chat -H "Content-Type: application/json" -d "{\"query\":\"What is vLLM?\"}"
+```
+
+- 镜像只含代码 + 依赖；模型（~2.9GB）与语料（156MB）从宿主机 **volume 挂载**，不进镜像。
+- `DEEPSEEK_API_KEY` 从项目根 `.env` 经 compose 的 `${...}` 注入容器，不入镜像不入库。
+- 本地开发仍是「`python3 server.py` + `go run .`」那套（见「快速开始」），与容器共用同一份代码。
+
+## CI/CD（GitHub Actions）
+
+push / PR 到 main 自动跑 gateway 的 Go 五步：`gofmt` 格式检查 → `go vet` 静态检查 → `go build` 编译 → `go test` 单测（bufconn 内存 gRPC + miniredis，无需真实依赖）。
+
+配置在 `.github/workflows/ci.yml`。Python 镜像 build 不进 CI（装 torch 太慢），只做 Go 侧，保证每次 push 秒级反馈。
+
+## 压测（k6）
+
+用 k6 压 `/api/chat` 的缓存命中路径（网关 → 鉴权 → 限流 → Redis 缓存），脚本见 `loadtest/k6-chat.js`。
+
+```bash
+# 1. 抬高限流阈值（默认 60 次/分钟会让压测全打 429；实测缓存命中吞吐 ~6600 req/s、
+#    50s 约 33 万请求，阈值需 10^7 量级——10 万会被限流拦掉，第一轮压测正是卡在 10 万处）
+#    在项目根 .env 加一行 RATE_LIMIT=10000000，然后
+docker compose up -d --force-recreate gateway
+
+# 2. 跑压测（setup() 先预热一次缓存，之后全命中 Redis，不烧 DeepSeek）
+k6 run loadtest/k6-chat.js                              # 终端汇总：QPS / p95 / 错误率
+k6 run --out json=results.json loadtest/k6-chat.js      # JSON 报告
 ```
 
 ---

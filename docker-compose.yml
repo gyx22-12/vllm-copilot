@@ -1,0 +1,44 @@
+# 三服务编排：redis + Python gRPC 服务 + Go 网关。
+# 起法：docker compose up -d --build   （首次 build 两个镜像，Python 侧装 CPU torch 较慢，属正常）
+# 密钥：DEEPSEEK_API_KEY 从项目根 .env 注入（.env 已 gitignore，不入库不入镜像）。
+# 模型/语料：从宿主机 volume 挂载（镜像只含代码 + 依赖，不含 ~2.9GB 模型与 156MB 语料）。
+
+services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  grpc-server:
+    build:
+      context: .
+      dockerfile: grpc_server/Dockerfile
+    environment:
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+    volumes:
+      - /mnt/c/Users/GYX/.cache/huggingface:/root/.cache/huggingface
+      - /mnt/c/Users/GYX/agent-project/corpus:/app/corpus
+    expose:
+      - "50051"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    environment:
+      GRPC_ADDR: grpc-server:50051
+      REDIS_ADDR: redis:6379
+      # 默认限流 60 次/分钟；压测前在项目根 .env 里加 RATE_LIMIT/RATE_WINDOW 抬高阈值（见 loadtest/）。
+      RATE_LIMIT: ${RATE_LIMIT:-60}
+      RATE_WINDOW: ${RATE_WINDOW:-60}
+      # 生产环境把 jwt.secret 换成强随机值：JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      grpc-server:
+        condition: service_started

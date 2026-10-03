@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,8 +17,13 @@ import (
 )
 
 // staticDir 前端静态资源目录（与 webapp.py 共用项目根 static/，不重复维护）。
-// 注意：go run . 需在 gateway/ 目录下执行，此路径相对该目录。
-const staticDir = "../static"
+// 本地 go run . 默认相对 gateway/ 的 ../static；容器内由 STATIC_DIR 环境变量覆盖（compose 注入 /app/static）。
+func staticDir() string {
+	if d := os.Getenv("STATIC_DIR"); d != "" {
+		return d
+	}
+	return "../static"
+}
 
 func main() {
 	config.Load("config/config.yml")
@@ -38,9 +44,10 @@ func main() {
 	r := gin.Default()
 
 	// 前端页面：/ 返回 index.html，/static/ 托管 css/js（与 webapp.py 同一份文件）。
-	r.Static("/static", staticDir)
+	dir := staticDir()
+	r.Static("/static", dir)
 	r.GET("/", func(c *gin.Context) {
-		c.File(staticDir + "/index.html")
+		c.File(dir + "/index.html")
 	})
 
 	r.GET("/healthz", func(c *gin.Context) {

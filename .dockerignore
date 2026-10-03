@@ -1,0 +1,29 @@
+# ---- 版本控制 / 密钥（.env 含 DEEPSEEK_API_KEY，绝不进镜像）----
+.git
+.env
+
+# ---- Python 缓存 / 编译产物 ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# ---- 语料软链（容器内用 volume 挂载真实路径，见 docker-compose.yml）----
+corpus
+
+# ---- agent 运行时工作区 ----
+workspace/
+
+# ---- 日志 / 临时 ----
+*.log
+*.tmp
+
+# ---- 非运行期内容（CI / 压测脚本 / 文档，不进镜像）----
+.github/
+docs/
+loadtest/
+
+# ---- 本机构建产物 ----
+gateway/gateway

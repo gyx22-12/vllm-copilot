@@ -24,3 +24,6 @@ gateway/config/config.yml
 
 # ---- corpus 软链（指向 Windows 侧语料，不入库）----
 corpus
+
+# ---- 预下载的 torch CPU wheel（构建 grpc_server 镜像用，见 grpc_server/Dockerfile，不入库）----
+grpc_server/*.whl
