@@ -19,8 +19,8 @@ services:
     environment:
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
     volumes:
-      - /mnt/c/Users/GYX/.cache/huggingface:/root/.cache/huggingface
-      - /mnt/c/Users/GYX/agent-project/corpus:/app/corpus
+      - C:/Users/GYX/.cache/huggingface:/root/.cache/huggingface
+      - C:/Users/GYX/agent-project/corpus:/app/corpus
     expose:
       - "50051"
 
