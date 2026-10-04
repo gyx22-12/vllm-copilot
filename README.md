@@ -135,10 +135,15 @@ cd grpc_server && python3 server.py        # 监听 :50051
 # 4.2 Go 网关（另开终端；需 go 1.26 + Redis 在 6379）
 cd gateway && go run .                      # 监听 :8080，浏览器打开 http://localhost:8080/ 即前端
 
-# 4.3 走网关问答
-curl -X POST localhost:8080/api/chat -H "Content-Type: application/json" -d "{\"query\":\"What is vLLM?\"}"
+# 4.3 走网关问答（鉴权默认开启：先取 token，再带 Authorization）
+curl -X POST localhost:8080/api/token -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+# → {"token":"<JWT>"}，把 token 填进下面的 TOKEN
+TOKEN=<JWT>
+curl -X POST localhost:8080/api/chat -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" -d '{"query":"What is vLLM?"}'
 # → {"answer":"...","contexts":["..."]}，与 webapp 的 /api/chat 同构
-curl localhost:8080/api/suggestions          # 建议问题（取自评测集，走 gRPC）
+curl localhost:8080/api/suggestions -H "Authorization: Bearer $TOKEN"   # 建议问题（取自评测集，走 gRPC）
 ```
 
 ---
@@ -194,9 +199,13 @@ docker compose up -d --build
 # 2. 等 Python 服务加载索引（首次约 1~6 分钟，走宿主机挂载的模型/语料）
 docker compose logs -f grpc-server
 
-# 3. 验证
+# 3. 验证（鉴权默认开启：先取 token，再带 Authorization 调 /api/chat）
 curl localhost:8080/healthz
-curl -X POST localhost:8080/api/chat -H "Content-Type: application/json" -d "{\"query\":\"What is vLLM?\"}"
+curl -X POST localhost:8080/api/token -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}'
+TOKEN=<上面返回的 token>
+curl -X POST localhost:8080/api/chat -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" -d '{"query":"What is vLLM?"}'
 ```
 
 - 镜像只含代码 + 依赖；模型（~2.9GB）与语料（156MB）从宿主机 **volume 挂载**，不进镜像。

@@ -34,6 +34,8 @@ services:
       # 默认限流 60 次/分钟；压测前在项目根 .env 里加 RATE_LIMIT/RATE_WINDOW 抬高阈值（见 loadtest/）。
       RATE_LIMIT: ${RATE_LIMIT:-60}
       RATE_WINDOW: ${RATE_WINDOW:-60}
+      # 鉴权默认开启（与 config.yml 一致）；如需直连可设 AUTH_ENABLED=0。
+      AUTH_ENABLED: ${AUTH_ENABLED:-1}
       # 生产环境把 jwt.secret 换成强随机值：JWT_SECRET: ${JWT_SECRET}
     ports:
       - "8080:8080"

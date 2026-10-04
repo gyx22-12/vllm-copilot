@@ -27,16 +27,24 @@ const BASE = __ENV.BASE_URL || 'http://localhost:8080';
 const Q = 'What is vLLM?';
 
 export function setup() {
-  // 预热：真实问答一次，把 Q 的答案写进 Redis 缓存。
-  const r = http.post(`${BASE}/api/chat`, JSON.stringify({ query: Q }), {
+  // 鉴权默认开启：先取 token（setup 只跑一次，不触发 /api/token 的 5 次/分钟限流）。
+  const t = http.post(`${BASE}/api/token`, JSON.stringify({ username: 'admin', password: 'admin123' }), {
     headers: { 'Content-Type': 'application/json' },
   });
+  check(t, { '取 token 成功': (x) => x.status === 200 });
+  const token = t.json('token');
+
+  // 预热：真实问答一次，把 Q 的答案写进 Redis 缓存（带 token）。
+  const r = http.post(`${BASE}/api/chat`, JSON.stringify({ query: Q }), {
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+  });
   console.log(`预热缓存完成，status=${r.status}`);
+  return { token };
 }
 
-export default function () {
+export default function (data) {
   const r = http.post(`${BASE}/api/chat`, JSON.stringify({ query: Q }), {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.token}` },
   });
   check(r, {
     'status 200': (x) => x.status === 200,

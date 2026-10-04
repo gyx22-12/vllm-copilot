@@ -33,15 +33,21 @@ func (r *Redis) Set(ctx context.Context, key, val string, ttl time.Duration) err
 	return r.client.Set(ctx, key, val, ttl).Err()
 }
 
-// Allow 固定窗口限流：INCR 计数，首次设窗口过期；n<=limit 放行。
+// Allow 固定窗口限流：INCR 计数 + 首次设窗口过期。两步用 Lua 脚本原子执行，
+// 避免 INCR 和 EXPIRE 之间进程崩溃导致 key 永不过期、该 IP 被永久限流。
 // 窗口内请求超过 limit 返回 false；Redis 故障时把 error 返回给调用方降级放行。
+var allowScript = redis.NewScript(`
+local n = redis.call('INCR', KEYS[1])
+if n == 1 then
+    redis.call('EXPIRE', KEYS[1], ARGV[1])
+end
+return n
+`)
+
 func (r *Redis) Allow(ctx context.Context, key string, limit int, window time.Duration) (bool, error) {
-	n, err := r.client.Incr(ctx, key).Result()
+	n, err := allowScript.Run(ctx, r.client, []string{key}, int64(window.Seconds())).Int64()
 	if err != nil {
 		return false, err
-	}
-	if n == 1 {
-		_ = r.client.Expire(ctx, key, window)
 	}
 	return n <= int64(limit), nil
 }

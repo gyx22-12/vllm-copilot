@@ -12,7 +12,8 @@ jwt:
 cache:
   ttl: 600
 auth:
-  enabled: false
+  # 默认开启 JWT 鉴权；本地/演示如需直连可用环境变量 AUTH_ENABLED=0 覆盖关闭。
+  enabled: true
   username: "admin"
   password: "admin123"
 rate:

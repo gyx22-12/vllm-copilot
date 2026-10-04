@@ -72,4 +72,10 @@ func Load(path string) {
 			AppConfig.Rate.Window = v
 		}
 	}
+	// 鉴权开关可用环境变量覆盖（compose 里 AUTH_ENABLED=1 开启），防生产误留默认关鉴权。
+	if s := os.Getenv("AUTH_ENABLED"); s != "" {
+		if v, err := strconv.ParseBool(s); err == nil {
+			AppConfig.Auth.Enabled = v
+		}
+	}
 }

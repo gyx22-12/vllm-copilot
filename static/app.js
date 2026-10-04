@@ -93,6 +93,44 @@ const suggestPanel = $("#suggestPanel");
 const collapseBtn = $("#collapseBtn");
 const emptyHintEl = $("#emptyHint");
 
+// ---------- 鉴权 ----------
+// 网关默认开启 JWT 鉴权：页面加载时用 demo 凭据取 token，缓存到 localStorage 复用，
+// 避免每次刷新都打 /api/token（该端点有 5 次/分钟限流）。生产环境应换成真实登录，
+// 凭据与 token 都不应出现在前端。
+const AUTH_TOKEN_KEY = "copilot_token";
+let authToken = safeGet(AUTH_TOKEN_KEY);
+
+function safeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function safeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function safeDel(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+async function ensureToken() {
+  if (authToken) return authToken;
+  const res = await fetch("/api/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username: "admin", password: "admin123" }),
+  });
+  if (!res.ok) throw new Error("获取访问令牌失败（HTTP " + res.status + "）");
+  const data = await res.json();
+  authToken = data.token;
+  safeSet(AUTH_TOKEN_KEY, authToken);
+  return authToken;
+}
+
+// authFetch：自动带 Bearer token；遇 401 清缓存重新取 token 再重试一次。
+async function authFetch(url, opts = {}) {
+  opts.headers = Object.assign({}, opts.headers, { Authorization: "Bearer " + (await ensureToken()) });
+  let res = await fetch(url, opts);
+  if (res.status === 401) {
+    authToken = null;
+    safeDel(AUTH_TOKEN_KEY);
+    opts.headers.Authorization = "Bearer " + (await ensureToken());
+    res = await fetch(url, opts);
+  }
+  return res;
+}
+
 // ---------- 转义 & 极简 markdown ----------
 function escapeHtml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -142,7 +180,7 @@ async function loadSuggestions() {
   const btn = $("#refreshBtn");
   btn.disabled = true;
   try {
-    const res = await fetch("/api/suggestions");
+    const res = await authFetch("/api/suggestions");
     const data = await res.json();
     state.suggestions = data.suggestions || [];
     renderSuggestions();
@@ -231,7 +269,7 @@ async function submit() {
   state.loading = true;
   $("#sendBtn").disabled = true;
   try {
-    const res = await fetch("/api/chat", {
+    const res = await authFetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: query }),
