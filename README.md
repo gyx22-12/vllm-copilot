@@ -166,7 +166,6 @@ vllm-copilot/
 ├── two_tier_results.json  # 实验 20 落盘结果
 ├── experiments.md         # ★ 20 个实验的完整记录（先读这个）
 ├── agent_roadmap.md       # Agent 设计路线
-├── rag_qa.md              # 面试问答准备
 ├── proto/                 # ★ gRPC 接口定义（Go + Python 共用）
 │   └── copilot.proto
 ├── grpc_server/           # ★ Python gRPC 服务（索引常驻内存）
