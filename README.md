@@ -151,7 +151,7 @@ curl localhost:8080/api/suggestions -H "Authorization: Bearer $TOKEN"   # 建议
 ## 目录结构
 
 ```
-rag-project/
+vllm-copilot/
 ├── agent.py               # ReAct Agent：路由 + 7 个工具 + 子进程隔离
 ├── rag_baseline.py        # 文档检索：结构切块 + small-to-big + 嵌入
 ├── bm25.py / rerank.py    # BM25 与交叉编码器重排
