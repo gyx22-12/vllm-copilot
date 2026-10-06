@@ -100,7 +100,7 @@
 
 ## 实验 5：语义改写题 A/B —— 证明"BM25 领先"是评测偏置
 
-动机：面试官会问"你按关键词命中算召回，是不是天生偏 BM25？"。用数据回答，不嘴硬。
+
 
 设计：从 10 道精确词题里挑 4 道"向量本来就能命中"的（LoRA/推理/cudagraph/prefix），把 query 改写成同义表达、刻意去掉 gold 精确词（如 "load/unload LoRA adapters at runtime" → "swap in or remove fine-tuned adapters on a live server"），gold 完全不变。语料/切块/模型/检索全部不动，只换 query 写法。
 
